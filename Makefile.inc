@@ -1,5 +1,6 @@
 # PYTHIA configuration file.
-# Generated on Sun Mar 29 11:16:58 CEST 2020 with the user supplied options:
+# Generated on Fri Apr 3 13:56:49 CEST 2020 with the user supplied options:
+# --with-fastjet3=/usr/local
 
 # Install directory prefixes.
 PREFIX_BIN=/usr/local/src/pythia8244/bin
@@ -22,10 +23,10 @@ EVTGEN_INCLUDE=
 EVTGEN_LIB=
 
 # FASTJET3 configuration.
-FASTJET3_USE=false
-FASTJET3_BIN=
-FASTJET3_INCLUDE=
-FASTJET3_LIB=
+FASTJET3_USE=true
+FASTJET3_BIN=/usr/local/bin
+FASTJET3_INCLUDE=/usr/local/include
+FASTJET3_LIB=/usr/local/lib
 
 # HEPMC2 configuration.
 HEPMC2_USE=false
