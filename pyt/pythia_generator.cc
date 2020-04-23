@@ -22,12 +22,44 @@ using namespace Pythia8;
 int main() {
   // Generator. Process selection. LHC initialization. Histogram.
   Pythia pythia;
-  //pythia.readString("Beams:eCM = 8000."); //energija
+  pythia.readString("Beams:eCM = 13000"); //energija 
   //pythia.readString("HardQCD:all = on");  // podprocesi zeljeni
   pythia.readString("HiggsSM:gg2H = on");   // podprocesi zeljeni
 
+  pythia.readString("PartonLevel:ISR = off"); 
+  pythia.readString("PartonLevel:FSR = off");  
+  pythia.readString("PartonLevel:MPI = off");
+  
+
+
+
+  //pythia.readString("HiggsSM:all = on");
+//pythia.readString("HadronLevel:all= on");
+
+
+  //pythia.readString("25:m0 = 200.0");
   pythia.readString("25:onMode = off");
-  pythia.readString("25:onIfMatch = 23 23");
+  
+  pythia.readString("25:onIfMatch = 5 -5");
+
+  pythia.readString("HadronLevel:Hadronize = off");
+
+  //pythia.readString("23:onMode = off");
+
+  /*pythia.readString("5:onMode = off");
+  pythia.readString("-5:onMode = off");*/
+
+  /*pythia.readString("23:onMode = off");
+
+  pythia.readString("23:onIfAll = 13 -13");*/
+
+
+
+  
+  //pythia.readString("PartonLevel:all = off");
+
+  //pythia.readString("25:onMode = off");
+  //pythia.readString("25:onIfMatch = 23 23");
   //pythia.readString("25:onIfMatch = 5 -5");
   ///pythia.readString("25:onIfMatch = -5 5");
 
@@ -54,16 +86,20 @@ int main() {
 
   string ime, daughter1, daughter2;
   int d1_id,d2_id, brojac = 0;
+  string ime_nep;
+  double m_higgs;
 	
   // Begin event loop. Generate event. Skip if error. List first one.
-  for (int iEvent = 0; iEvent < 50; ++iEvent) {
+  for (int iEvent = 0; iEvent < 1; ++iEvent) {
     if (!pythia.next()) continue;
     // Find number of all final charged particles and fill histogram.
     
     for (int i = 0; i < pythia.event.size(); ++i){ //petlja po svakoj čestici (tu možemo gledati njihova svojstva
       if(pythia.event[i].id() == 25)
 	{
+
 		ime = pythia.event[i].name();
+		m_higgs = pythia.event[i].m();
 		d1_id = pythia.event[i].daughter1();
 		d2_id = pythia.event[i].daughter2();
 		
@@ -80,7 +116,8 @@ int main() {
 
 
 
-		dat<<ime<<"\t"<<d1_id<<"\t"<<d2_id<<"\n"<<endl;
+		dat<<ime<<"\t"<<d1_id<<"\t"<<d2_id<<"\t"<<m_higgs<<endl;
+		  
 	}
 
 	
@@ -89,7 +126,9 @@ int main() {
 	
   // End of event loop. Statistics. Histogram. Done.
   }
-  dat<<brojac<<endl;
+
+  
+  dat<<brojac<<endl<<endl;
   dat.close();
  
 	
