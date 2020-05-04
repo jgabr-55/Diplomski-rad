@@ -24,115 +24,113 @@ int main() {
   Pythia pythia;
   pythia.readString("Beams:eCM = 13000"); //energija 
   //pythia.readString("HardQCD:all = on");  // podprocesi zeljeni
-  pythia.readString("HiggsSM:gg2H = on");   // podprocesi zeljeni
+  //pythia.readString("HiggsSM:gg2H = on");   // podprocesi zeljeni
+  pythia.readString("HiggsSM:ffbar2HZ = on");
 
   pythia.readString("PartonLevel:ISR = off"); 
   pythia.readString("PartonLevel:FSR = off");  
   pythia.readString("PartonLevel:MPI = off");
   
-
-
-
   //pythia.readString("HiggsSM:all = on");
-//pythia.readString("HadronLevel:all= on");
-
-
-  //pythia.readString("25:m0 = 200.0");
-  pythia.readString("25:onMode = off");
+  pythia.readString("25:m0 = 125.0");
   
+  
+  //pythia.readString("PhaseSpace:pTHatMax=100");
+  
+  pythia.readString("25:onMode = off");  
   pythia.readString("25:onIfMatch = 5 -5");
 
-  pythia.readString("HadronLevel:Hadronize = off");
+  pythia.readString("23:onMode = off");
+  pythia.readString("23:onIfMatch = 11 -11");
 
-  //pythia.readString("23:onMode = off");
-
-  /*pythia.readString("5:onMode = off");
-  pythia.readString("-5:onMode = off");*/
-
-  /*pythia.readString("23:onMode = off");
-
-  pythia.readString("23:onIfAll = 13 -13");*/
-
-
+  pythia.readString("HadronLevel:Hadronize = on");
 
   
-  //pythia.readString("PartonLevel:all = off");
-
-  //pythia.readString("25:onMode = off");
-  //pythia.readString("25:onIfMatch = 23 23");
-  //pythia.readString("25:onIfMatch = 5 -5");
-  ///pythia.readString("25:onIfMatch = -5 5");
-
-  //pythia.readString("HiggsSM:all = on");
-  //pythia.readString("Next:numberShowEvent = 4");   // display n događaja
-  //pythia.readString("PhaseSpace:pTHatMin = 20.");
+  pythia.readString("PhaseSpace:pTHatMin=100");
+  pythia.readString("PhaseSpace:pTHatMax=120");
+  
   pythia.init();
-  Hist mult("charged multiplicity", 100, -0.5, 799.5);
+  //Hist mult("charged multiplicity", 100, -0.5, 799.5);
 
   ofstream dat;
-  dat.open("higgs_bb_raspad.txt");
+  dat.open("jet_anti_kt.txt");
 
 
   // Fastjet analysis - select algorithm and parameters
-  /*double Rparam = 0.4;
+  double Rparam = 0.3;
   fastjet::Strategy               strategy = fastjet::Best;
   fastjet::RecombinationScheme    recombScheme = fastjet::E_scheme;
   fastjet::JetDefinition         *jetDef = NULL;
-  jetDef = new fastjet::JetDefinition(fastjet::kt_algorithm, Rparam,
+  jetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, Rparam,
                                       recombScheme, strategy);
   // Fastjet input
-  std::vector <fastjet::PseudoJet> fjInputs;*/
+  std::vector <fastjet::PseudoJet> finalParticles;
 
 
-  string ime, daughter1, daughter2;
-  int d1_id,d2_id, brojac = 0;
-  string ime_nep;
-  double m_higgs;
+
+ //u histogram idu masa i pT higgsa///////////////////////////
+
+
+  
+  int d1_no = -1,d2_no = -1, h_no=-1;
+ 
+  dat<<"px(Higgs)  py(Higgs)  pz(Higgs)  energ(Higgs)  masa(Higgs)  px(cest_1)  py(cest_1)  pz(cest_1)  energ(cest_1)  masa(cest_1)  px(cest_2)  py(cest_2)  pz(cest_2)  energ(cest_2)  masa(cest_2)"<<endl;
 	
   // Begin event loop. Generate event. Skip if error. List first one.
-  for (int iEvent = 0; iEvent < 1; ++iEvent) {
+  for (int iEvent = 0; iEvent < 5; ++iEvent) {
     if (!pythia.next()) continue;
     // Find number of all final charged particles and fill histogram.
+
+    d1_no=-1;
+    d2_no=-1;
     
     for (int i = 0; i < pythia.event.size(); ++i){ //petlja po svakoj čestici (tu možemo gledati njihova svojstva
-      if(pythia.event[i].id() == 25)
+      if(pythia.event[i].id() == 25 && pythia.event[i].daughter1()!=pythia.event[i].daughter2())
 	{
-
-		ime = pythia.event[i].name();
-		m_higgs = pythia.event[i].m();
-		d1_id = pythia.event[i].daughter1();
-		d2_id = pythia.event[i].daughter2();
-		
-		/*if(d1_id==5)
-			if(d2_id==-5)
-				brojac++;
-
-		if(d1_id==-5)
-			if(d2_id==5)
-				brojac++;*/
-
-		if(d1_id == 23 || d2_id == 23)
-			brojac++;
-
-
-
-		dat<<ime<<"\t"<<d1_id<<"\t"<<d2_id<<"\t"<<m_higgs<<endl;
+		d1_no = pythia.event[i].daughter1();
+		d2_no = pythia.event[i].daughter2();
+		h_no = i;
+   		//dat<<ime<<"\t"<<d1_id<<"\t"<<d2_id<<"\t"<<m_higgs<<endl;
 		  
 	}
 
-	
+      if(pythia.event[i].status()>0)
+	{
+		finalParticles.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
+	}
 	
   }
+
+  if(d1_no != -1 && d2_no != -1)
+	  {
+		//dat<<iEvent<<"\t"<<pythia.event[d1_no].id()<<"\t"<<pythia.event[d2_no].id()<<endl;
+		dat<<pythia.event[h_no].px()<<"     "<<pythia.event[h_no].py()<<"     "<<pythia.event[h_no].pz()<<"     "<<pythia.event[h_no].e()<<"     "<<pythia.event[h_no].m()<<"     "<<pythia.event[d1_no].px()<<"     "<<pythia.event[d1_no].py()<<"     "<<pythia.event[d1_no].pz()<<"     "<<pythia.event[d1_no].e()<<"     "<<pythia.event[d1_no].m()<<"     "<<pythia.event[d2_no].px()<<"     "<<pythia.event[d2_no].py()<<"     "<<pythia.event[d2_no].pz()<<"     "<<pythia.event[d2_no].e()<<"     "<<pythia.event[d2_no].m()<<endl;
+		
+          }
 	
   // End of event loop. Statistics. Histogram. Done.
   }
+  
+  //stvarnje objekta za clustring i spremanje clustera u vektor
+
+  fastjet::ClusterSequence clustSeq(finalParticles, *jetDef);
+  vector <fastjet::PseudoJet> sortedJets;
+
+  sortedJets = clustSeq.inclusive_jets(20);
+
+  cout<<"alg: "<<jetDef->description()<<endl;
+
+  for(unsigned int i = 0; i<sortedJets.size();i++)
+  {
+	cout<<sortedJets[i].pt()<<endl;
+
+  }
 
   
-  dat<<brojac<<endl<<endl;
   dat.close();
  
 	
   pythia.stat();
-  cout << mult;
+  //cout << mult;
   return 0;
 }
