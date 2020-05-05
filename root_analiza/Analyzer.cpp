@@ -68,3 +68,36 @@ void Analyzer::citanje_iz_datoteke(string filename)
 
   
 }
+
+void Analyzer::anti_kt_histo(string filename)
+{
+  TCanvas *c = new TCanvas("c","c",1000,500);
+
+   histo_akt = new TH1F("anti_kt_alg","",20,0,10);
+	
+  ifstream myReadFile;
+  myReadFile.open(filename.c_str());
+  string line;
+
+  _skipFirstLine = true;
+
+  if (myReadFile.is_open())
+  {
+    // Read the file line by line
+    while(getline(myReadFile, line))
+    {
+        stringstream   linestream(line);
+     
+
+        // Read output and send it to dedicated variables
+        linestream >> temp;
+
+	histo_akt->Fill(temp);
+
+    }
+  }
+
+ 
+ histo_akt->Draw();
+ c->SaveAs("anti_kt.png");
+}

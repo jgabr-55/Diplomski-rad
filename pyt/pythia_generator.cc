@@ -33,10 +33,7 @@ int main() {
   
   //pythia.readString("HiggsSM:all = on");
   pythia.readString("25:m0 = 125.0");
-  
-  
-  //pythia.readString("PhaseSpace:pTHatMax=100");
-  
+   
   pythia.readString("25:onMode = off");  
   pythia.readString("25:onIfMatch = 5 -5");
 
@@ -44,16 +41,16 @@ int main() {
   pythia.readString("23:onIfMatch = 11 -11");
 
   pythia.readString("HadronLevel:Hadronize = on");
-
-  
+ 
   pythia.readString("PhaseSpace:pTHatMin=100");
   pythia.readString("PhaseSpace:pTHatMax=120");
   
   pythia.init();
   //Hist mult("charged multiplicity", 100, -0.5, 799.5);
 
-  ofstream dat;
-  dat.open("jet_anti_kt.txt");
+  ofstream dat,jet_anti_kt;
+  dat.open("higgs_bb_raspad.txt");
+  jet_anti_kt.open("broj_jetova_po_dog.txt");
 
 
   // Fastjet analysis - select algorithm and parameters
@@ -64,26 +61,29 @@ int main() {
   jetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, Rparam,
                                       recombScheme, strategy);
   // Fastjet input
-  std::vector <fastjet::PseudoJet> finalParticles;
-
+  
 
 
  //u histogram idu masa i pT higgsa///////////////////////////
 
 
   
-  int d1_no = -1,d2_no = -1, h_no=-1;
+  int d1_no = -1,d2_no = -1, h_no=-1, anti_kt_brojac = 0, pom_akt_brojac=0;
+   
+  
  
   dat<<"px(Higgs)  py(Higgs)  pz(Higgs)  energ(Higgs)  masa(Higgs)  px(cest_1)  py(cest_1)  pz(cest_1)  energ(cest_1)  masa(cest_1)  px(cest_2)  py(cest_2)  pz(cest_2)  energ(cest_2)  masa(cest_2)"<<endl;
 	
   // Begin event loop. Generate event. Skip if error. List first one.
-  for (int iEvent = 0; iEvent < 5; ++iEvent) {
+  for (int iEvent = 0; iEvent < 100; ++iEvent) {
     if (!pythia.next()) continue;
     // Find number of all final charged particles and fill histogram.
 
     d1_no=-1;
     d2_no=-1;
-    
+
+    std::vector <fastjet::PseudoJet> finalParticles;
+
     for (int i = 0; i < pythia.event.size(); ++i){ //petlja po svakoj čestici (tu možemo gledati njihova svojstva
       if(pythia.event[i].id() == 25 && pythia.event[i].daughter1()!=pythia.event[i].daughter2())
 	{
@@ -100,6 +100,13 @@ int main() {
 	}
 	
   }
+	
+  //jet rekonstrukcija
+	fastjet::ClusterSequence clustSeq(finalParticles, *jetDef);
+        vector <fastjet::PseudoJet> sortedJets;      
+	sortedJets = clustSeq.inclusive_jets(20);
+	jet_anti_kt<<sortedJets.size()<<endl;
+	
 
   if(d1_no != -1 && d2_no != -1)
 	  {
@@ -113,22 +120,19 @@ int main() {
   
   //stvarnje objekta za clustring i spremanje clustera u vektor
 
-  fastjet::ClusterSequence clustSeq(finalParticles, *jetDef);
-  vector <fastjet::PseudoJet> sortedJets;
+  
 
-  sortedJets = clustSeq.inclusive_jets(20);
-
-  cout<<"alg: "<<jetDef->description()<<endl;
-
+  
+/*cout<<"alg: "<<jetDef->description()<<endl;
   for(unsigned int i = 0; i<sortedJets.size();i++)
   {
 	cout<<sortedJets[i].pt()<<endl;
 
-  }
+  }*/
 
   
   dat.close();
- 
+  jet_anti_kt.close();
 	
   pythia.stat();
   //cout << mult;

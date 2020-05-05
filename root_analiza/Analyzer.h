@@ -19,6 +19,7 @@ class Analyzer{
 
 public:
 	void citanje_iz_datoteke(string filename);
+	void anti_kt_histo(string filename);
 	bool _skipFirstLine;
 
 	double particle1_px;
@@ -39,7 +40,9 @@ public:
 	double Higgs_en;
 	double Higgs_m;
 
+	double temp;
+
 	TLorentzVector b,bbar,higgs_rekonstr,higgs_original;
-	TH1F *higgs_pt_rekonstr, *higgs_m_rekonstr, *higgs_pt_original, *higgs_m_original;
+	TH1F *higgs_pt_rekonstr, *higgs_m_rekonstr, *higgs_pt_original, *higgs_m_original, *histo_akt;
 	
 };
