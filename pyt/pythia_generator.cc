@@ -8,6 +8,11 @@
 
 
 #include "Pythia8/Pythia.h"
+#include "InterKTPythia8.h"
+#include "InterKT.h"
+
+#include <fenv.h>
+#include <map>
 
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/ClusterSequence.hh"
@@ -50,7 +55,7 @@ int main() {
 
   ofstream dat,jet_anti_kt;
   dat.open("higgs_bb_raspad.txt");
-  jet_anti_kt.open("broj_jetova_po_dog.txt");
+  jet_anti_kt.open("anti_kt_rekonstr_bbbar.txt");
 
 
   // Fastjet analysis - select algorithm and parameters
@@ -73,9 +78,9 @@ int main() {
   
  
   dat<<"px(Higgs)  py(Higgs)  pz(Higgs)  energ(Higgs)  masa(Higgs)  px(cest_1)  py(cest_1)  pz(cest_1)  energ(cest_1)  masa(cest_1)  px(cest_2)  py(cest_2)  pz(cest_2)  energ(cest_2)  masa(cest_2)"<<endl;
-	
+  jet_anti_kt<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;	
   // Begin event loop. Generate event. Skip if error. List first one.
-  for (int iEvent = 0; iEvent < 100; ++iEvent) {
+  for (int iEvent = 0; iEvent < 1000; ++iEvent) {
     if (!pythia.next()) continue;
     // Find number of all final charged particles and fill histogram.
 
@@ -94,7 +99,9 @@ int main() {
 		  
 	}
 
-      if(pythia.event[i].status()>0)
+	//sve finalne cestice osim el/poz ubacujemo u alg za rekonstr jetova
+
+      if(pythia.event[i].status()>0 && pythia.event[i].id()!=11 && pythia.event[i].id()!=-11)
 	{
 		finalParticles.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
 	}
@@ -105,9 +112,15 @@ int main() {
 	fastjet::ClusterSequence clustSeq(finalParticles, *jetDef);
         vector <fastjet::PseudoJet> sortedJets;      
 	sortedJets = clustSeq.inclusive_jets(20);
-	jet_anti_kt<<sortedJets.size()<<endl;
-	
 
+  //gledamo samo slucajeve sa 2 jeta  (nakon anti kt alg)
+	if(sortedJets.size()==2)
+		{
+			jet_anti_kt<<sortedJets[0].px()<<"     "<<sortedJets[0].py()<<"     "<<sortedJets[0].pz()<<"     "<<sortedJets[0].E()<<"     "<<sortedJets[1].px()<<"     "<<sortedJets[1].py()<<"     "<<sortedJets[1].pz()<<"     "<<sortedJets[1].E()<<endl;
+			
+		}
+	
+ //true values od higgsa i podaci za b i bbar direktno iz pythia outputa
   if(d1_no != -1 && d2_no != -1)
 	  {
 		//dat<<iEvent<<"\t"<<pythia.event[d1_no].id()<<"\t"<<pythia.event[d2_no].id()<<endl;
@@ -118,18 +131,7 @@ int main() {
   // End of event loop. Statistics. Histogram. Done.
   }
   
-  //stvarnje objekta za clustring i spremanje clustera u vektor
-
   
-
-  
-/*cout<<"alg: "<<jetDef->description()<<endl;
-  for(unsigned int i = 0; i<sortedJets.size();i++)
-  {
-	cout<<sortedJets[i].pt()<<endl;
-
-  }*/
-
   
   dat.close();
   jet_anti_kt.close();

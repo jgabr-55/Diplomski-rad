@@ -11,6 +11,7 @@
 #include <THStack.h>
 #include <TLorentzVector.h>
 #include <math.h>
+#include <TLegend.h>
 
 
 using namespace std;
@@ -42,7 +43,7 @@ public:
 
 	double temp;
 
-	TLorentzVector b,bbar,higgs_rekonstr,higgs_original;
-	TH1F *higgs_pt_rekonstr, *higgs_m_rekonstr, *higgs_pt_original, *higgs_m_original, *histo_akt;
+	TLorentzVector b,bbar,higgs_true,higgs_rekonstr,higgs_pyt_outpt;
+	TH1F *higgs_pt_rekonstr, *higgs_m_rekonstr, *higgs_pt_pyt_outpt, *higgs_m_pyt_outpt, *histo_akt_pt, *histo_akt_m, *higgs_pt_true, *higgs_m_true;
 	
 };
