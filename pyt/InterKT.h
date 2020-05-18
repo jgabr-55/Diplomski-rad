@@ -492,7 +492,7 @@ private:
 
 }
 
-#include "InterKT.tcc"
+//#include "InterKT.tcc"
 
 #endif
 

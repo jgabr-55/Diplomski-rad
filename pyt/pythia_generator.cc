@@ -17,7 +17,9 @@
 #include "fastjet/PseudoJet.hh"
 #include "fastjet/ClusterSequence.hh"
 #include <math.h>
+#include <string>
 #include <fstream>
+#include <iostream>
 
 
 
@@ -27,6 +29,8 @@ using namespace Pythia8;
 int main() {
   // Generator. Process selection. LHC initialization. Histogram.
   Pythia pythia;
+
+
   pythia.readString("Beams:eCM = 13000"); //energija 
   //pythia.readString("HardQCD:all = on");  // podprocesi zeljeni
   //pythia.readString("HiggsSM:gg2H = on");   // podprocesi zeljeni
@@ -53,9 +57,13 @@ int main() {
   pythia.init();
   //Hist mult("charged multiplicity", 100, -0.5, 799.5);
 
-  ofstream dat,jet_anti_kt;
+  ofstream dat,jet_anti_kt,dipole_kt_dat;
   dat.open("higgs_bb_raspad.txt");
   jet_anti_kt.open("anti_kt_rekonstr_bbbar.txt");
+  dipole_kt_dat.open("dipol_kt_alg.txt");
+
+  ofstream f1("test.bin", std::ios::binary);
+
 
 
   // Fastjet analysis - select algorithm and parameters
@@ -65,22 +73,21 @@ int main() {
   fastjet::JetDefinition         *jetDef = NULL;
   jetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, Rparam,
                                       recombScheme, strategy);
-  // Fastjet input
-  
-
-
- //u histogram idu masa i pT higgsa///////////////////////////
-
-
-  
-  int d1_no = -1,d2_no = -1, h_no=-1, anti_kt_brojac = 0, pom_akt_brojac=0;
-   
-  
  
+  //priprema za dipole_kt
+
+  InterKT::Clustering<Vec4> clus;
+  clus.maxMIpt2 = 1.0;
+  clus.cutkt = 20.0;
+  InterKT::Calorimeter<Vec4> calo(60, 100, -5.0, 5.0);
+  
+  int d1_no = -1,d2_no = -1, h_no=-1;
+  
+   
   dat<<"px(Higgs)  py(Higgs)  pz(Higgs)  energ(Higgs)  masa(Higgs)  px(cest_1)  py(cest_1)  pz(cest_1)  energ(cest_1)  masa(cest_1)  px(cest_2)  py(cest_2)  pz(cest_2)  energ(cest_2)  masa(cest_2)"<<endl;
-  jet_anti_kt<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;	
+  jet_anti_kt<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
   // Begin event loop. Generate event. Skip if error. List first one.
-  for (int iEvent = 0; iEvent < 1000; ++iEvent) {
+  for (int iEvent = 0; iEvent < 3; ++iEvent) {
     if (!pythia.next()) continue;
     // Find number of all final charged particles and fill histogram.
 
@@ -88,6 +95,8 @@ int main() {
     d2_no=-1;
 
     std::vector <fastjet::PseudoJet> finalParticles;
+    vector<Vec4> tracks;
+    multimap<double,Vec4> sorted;
 
     for (int i = 0; i < pythia.event.size(); ++i){ //petlja po svakoj čestici (tu možemo gledati njihova svojstva
       if(pythia.event[i].id() == 25 && pythia.event[i].daughter1()!=pythia.event[i].daughter2())
@@ -104,14 +113,36 @@ int main() {
       if(pythia.event[i].status()>0 && pythia.event[i].id()!=11 && pythia.event[i].id()!=-11)
 	{
 		finalParticles.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
+
+	  /// donja linija za dipoleKT
+		tracks.push_back(pythia.event[i].p()); //// vektor za funkciju cluster!!!!!!!
 	}
 	
   }
 	
-  //jet rekonstrukcija
+  //jet rekonstrukcija anti_kt
 	fastjet::ClusterSequence clustSeq(finalParticles, *jetDef);
         vector <fastjet::PseudoJet> sortedJets;      
 	sortedJets = clustSeq.inclusive_jets(20);
+
+  //jet rekonstrukcija dipoleKT
+
+	 for ( int k = 0, N = tracks.size(); k< N; ++k )
+      		sorted.insert(make_pair(tracks[k].pT(), tracks[k]));
+    	multimap<double,Vec4>::iterator it = sorted.begin();
+   	for ( int k = 0, N = tracks.size(); k < N; ++k, ++it )
+      		tracks[k] = it->second;
+
+	clus.sorted = false;
+        clus.aript = false;
+	
+	clus.cluster(tracks);
+        vector<Vec4> dipolekt_jets = clus.getJets();
+	cout<<dipolekt_jets[0]<<endl;
+
+
+
+
 
   //gledamo samo slucajeve sa 2 jeta  (nakon anti kt alg)
 	if(sortedJets.size()==2)
@@ -131,10 +162,13 @@ int main() {
   // End of event loop. Statistics. Histogram. Done.
   }
   
+  //cout<<tracks[0]<<"\n"<<tracks[1]<<endl;  --> svaki clan vektora tracks je cetverovektor
   
   
+
   dat.close();
   jet_anti_kt.close();
+  dipole_kt_dat.close();
 	
   pythia.stat();
   //cout << mult;

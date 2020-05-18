@@ -1,9 +1,8 @@
 #ifndef InterKTPythia8
 #define InterKTPythia8
-
 #include "InterKTTraits.h"
 
-namespace InterKT {
+namespace InterKT {	
 
 template<>
 struct LorentzTraits<Pythia8::Vec4>:
