@@ -753,7 +753,7 @@ void InterKT::Clustering<LorentzMomentum>::debugafter(Cluster & c) const {
 
 
 template <typename LorentzMomentum>
-vector<LorentzMomentum> InterKT::Clustering<LorentzMomentum>::getJets() {
+std::vector <LorentzMomentum> InterKT::Clustering<LorentzMomentum>::getJets() {
   vector<LorentzMomentum> ret;
   if ( jets.empty() ) filljets();
   for ( int i = 2, Ni = jets.size(); i < Ni; ++i )

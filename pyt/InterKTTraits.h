@@ -1,6 +1,15 @@
 #ifndef InterKTTraits_H
 #define InterKTTraits_H
 
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <stdexcept>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
 namespace InterKT {
 
 using namespace std;

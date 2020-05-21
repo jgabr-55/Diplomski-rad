@@ -6,6 +6,7 @@
 // This is a simple test program. It fits on one slide in a talk.
 // It studies the charged multiplicity distribution at the LHC.
 
+//kompajler vidi promjenu u .h i .cc samo ako napravimo i promjenu u ovom kodu
 
 #include "Pythia8/Pythia.h"
 #include "InterKTPythia8.h"
@@ -57,12 +58,12 @@ int main() {
   pythia.init();
   //Hist mult("charged multiplicity", 100, -0.5, 799.5);
 
-  ofstream dat,jet_anti_kt,dipole_kt_dat;
+  std::ofstream dat,jet_anti_kt,dipole_kt_dat, test;
   dat.open("higgs_bb_raspad.txt");
   jet_anti_kt.open("anti_kt_rekonstr_bbbar.txt");
   dipole_kt_dat.open("dipol_kt_alg.txt");
 
-  ofstream f1("test.bin", std::ios::binary);
+  test.open("test.txt");
 
 
 
@@ -77,25 +78,25 @@ int main() {
   //priprema za dipole_kt
 
   InterKT::Clustering<Vec4> clus;
-  clus.maxMIpt2 = 1.0;
+  //clus.maxMIpt2 = 5.0;
   clus.cutkt = 20.0;
-  InterKT::Calorimeter<Vec4> calo(60, 100, -5.0, 5.0);
   
   int d1_no = -1,d2_no = -1, h_no=-1;
   
    
   dat<<"px(Higgs)  py(Higgs)  pz(Higgs)  energ(Higgs)  masa(Higgs)  px(cest_1)  py(cest_1)  pz(cest_1)  energ(cest_1)  masa(cest_1)  px(cest_2)  py(cest_2)  pz(cest_2)  energ(cest_2)  masa(cest_2)"<<endl;
   jet_anti_kt<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
+  dipole_kt_dat<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
+
   // Begin event loop. Generate event. Skip if error. List first one.
-  for (int iEvent = 0; iEvent < 3; ++iEvent) {
+  for (int iEvent = 0; iEvent < 100; ++iEvent) {
     if (!pythia.next()) continue;
-    // Find number of all final charged particles and fill histogram.
 
     d1_no=-1;
     d2_no=-1;
 
     std::vector <fastjet::PseudoJet> finalParticles;
-    vector<Vec4> tracks;
+    std::vector<Vec4> tracks;
     multimap<double,Vec4> sorted;
 
     for (int i = 0; i < pythia.event.size(); ++i){ //petlja po svakoj čestici (tu možemo gledati njihova svojstva
@@ -104,7 +105,6 @@ int main() {
 		d1_no = pythia.event[i].daughter1();
 		d2_no = pythia.event[i].daughter2();
 		h_no = i;
-   		//dat<<ime<<"\t"<<d1_id<<"\t"<<d2_id<<"\t"<<m_higgs<<endl;
 		  
 	}
 
@@ -115,7 +115,7 @@ int main() {
 		finalParticles.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
 
 	  /// donja linija za dipoleKT
-		tracks.push_back(pythia.event[i].p()); //// vektor za funkciju cluster!!!!!!!
+		tracks.push_back(pythia.event[i].p()); //// vektor za funkciju cluster!!!!!!! ---> radi
 	}
 	
   }
@@ -127,18 +127,27 @@ int main() {
 
   //jet rekonstrukcija dipoleKT
 
-	 for ( int k = 0, N = tracks.size(); k< N; ++k )
+	/*for ( int k = 0, N = tracks.size(); k< N; ++k )
       		sorted.insert(make_pair(tracks[k].pT(), tracks[k]));
     	multimap<double,Vec4>::iterator it = sorted.begin();
    	for ( int k = 0, N = tracks.size(); k < N; ++k, ++it )
       		tracks[k] = it->second;
 
 	clus.sorted = false;
-        clus.aript = false;
+        clus.aript = false;*/
 	
-	clus.cluster(tracks);
-        vector<Vec4> dipolekt_jets = clus.getJets();
-	cout<<dipolekt_jets[0]<<endl;
+	//cout<<tracks[0]<<endl;
+	
+	clus.cluster(tracks,test);
+        std::vector<Vec4> dipolekt_jets = clus.getJets();
+
+	if(dipolekt_jets.size()==2)
+	{
+		//cout<<dipolekt_jets[0]<<endl;
+		dipole_kt_dat<<dipolekt_jets[0].px()<<"     "<<dipolekt_jets[0].py()<<"     "<<dipolekt_jets[0].pz()<<"     "<<dipolekt_jets[0].e()<<"     "<<
+			       dipolekt_jets[1].px()<<"     "<<dipolekt_jets[1].py()<<"     "<<dipolekt_jets[1].pz()<<"     "<<dipolekt_jets[1].e()<<endl;
+		
+	}
 
 
 
@@ -162,13 +171,14 @@ int main() {
   // End of event loop. Statistics. Histogram. Done.
   }
   
-  //cout<<tracks[0]<<"\n"<<tracks[1]<<endl;  --> svaki clan vektora tracks je cetverovektor
+  //cout<<tracks[0]<<"\n"<<tracks[1]<<endl; // --> svaki clan vektora tracks je cetverovektor
   
   
 
   dat.close();
   jet_anti_kt.close();
   dipole_kt_dat.close();
+  test.close();
 	
   pythia.stat();
   //cout << mult;

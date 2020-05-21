@@ -161,3 +161,53 @@ void Analyzer::anti_kt_histo(string filename)
  legend2->Draw("same");
  ca->SaveAs("anti_kt.png");
 }
+
+void Analyzer::dipole_kt_histo(string filename)
+{
+   TCanvas *cb = new TCanvas("cb","cb",1000,500);
+   cb->Divide(2,1);
+
+   histo_dkt_pt = new TH1F("anti_kt_alg_pt","",50,-50,150);
+   histo_dkt_m = new TH1F("anti_kt_alg_,m","",50,-10,150);
+	
+
+ ifstream myReadFile;
+  myReadFile.open(filename.c_str());
+  string line;
+
+  _skipFirstLine = true;
+
+  if (myReadFile.is_open())
+  {
+    // Read the file line by line
+    while(getline(myReadFile, line))
+    {
+        stringstream   linestream(line);
+      	
+	if (_skipFirstLine)
+        {
+          _skipFirstLine = false;
+          continue;
+        }
+
+
+        // Read output and send it to dedicated variables
+        linestream >> particle1_px >> particle1_py >> particle1_pz >> particle1_en >> particle2_px >> particle2_py >> particle2_pz >> particle2_en;
+
+	b.SetPxPyPzE(particle1_px,particle1_py,particle1_pz,particle1_en);
+	bbar.SetPxPyPzE(particle2_px,particle2_py,particle2_pz,particle2_en);
+
+	higgs_rekonstr = b + bbar;
+
+	histo_dkt_pt->Fill(higgs_rekonstr.Pt());
+	histo_dkt_m->Fill(higgs_rekonstr.M());
+	}
+   }
+
+cb->cd(1);
+histo_dkt_pt->Draw();
+cb->cd(2);
+histo_dkt_m->Draw();
+
+cb->SaveAs("dipole_kt_rekonstr.png");
+}
