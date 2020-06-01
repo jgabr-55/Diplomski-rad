@@ -11,7 +11,7 @@ void Analyzer::citanje_iz_datoteke(string filename)
   higgs_pt_pyt_outpt = new TH1F("trans_mom_original_higgsa","",50,-50,150);
 
   higgs_pt_true = new TH1F("true_higgs_pt","",50,-50,150);
-  higgs_m_true = new TH1F("true_higgs_m","",50,100,150);			//iz 2 b kvarka sa >20 GeV
+  higgs_m_true = new TH1F("true_higgs_m","",50,100,150);			//iz 2 b kvarka sa >10 GeV
 
   ifstream myReadFile;
   myReadFile.open(filename.c_str());
@@ -54,7 +54,7 @@ void Analyzer::citanje_iz_datoteke(string filename)
         higgs_pt_pyt_outpt->Fill(higgs_pyt_outpt.Pt());
 	/////////////////
 
-        if(b.Pt()>20 && bbar.Pt()>20)
+        if(b.Pt()>10 && bbar.Pt()>10)
           {
 		higgs_true = b + bbar; //za true vrijednost uzmemo ono što dobijemo od 2 b kvarka
 
@@ -211,3 +211,62 @@ histo_dkt_m->Draw();
 
 cb->SaveAs("dipole_kt_rekonstr.png");
 }
+
+void Analyzer::histogram_rek_jetova(string filename1, string filename2)
+{
+	TCanvas *cc = new TCanvas("cc","cc",1000,500);
+	cc->Divide(2,1);
+	histo_test = new TH1F("dipole_jetovi","",4,0,4);
+	histo_test1 = new TH1F("antikt_jetovi","",4,0,4);
+
+	int br1, br2;
+
+	ifstream myReadFile1;
+  myReadFile1.open(filename1.c_str());
+  string line1;
+
+  _skipFirstLine = true;
+
+  if (myReadFile1.is_open())
+  {
+    // Read the file line by line
+    while(getline(myReadFile1, line1))
+    {
+        stringstream   linestream(line1);
+      	
+
+
+        // Read output and send it to dedicated variables
+        linestream >> br1;
+	histo_test->Fill(br1);
+}}
+
+ifstream myReadFile2;
+  myReadFile2.open(filename2.c_str());
+  string line2;
+
+  _skipFirstLine = true;
+
+  if (myReadFile2.is_open())
+  {
+    // Read the file line by line
+    while(getline(myReadFile2, line2))
+    {
+        stringstream   linestream(line2);
+      	
+
+
+        // Read output and send it to dedicated variables
+        linestream >> br2;
+	histo_test1->Fill(br2);
+}}
+
+cc->cd(1);
+histo_test->SetTitle("Dipole_kt alg (15 GeV), nmin = 2");
+histo_test->Draw();
+cc->cd(2);
+histo_test1->SetTitle("anti_kt alg (15 GeV) nmin = 2");
+histo_test1->Draw();
+cc->SaveAs("rekonstr_jetovi.png");
+}
+
