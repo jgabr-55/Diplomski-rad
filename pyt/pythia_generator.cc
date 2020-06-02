@@ -58,7 +58,7 @@ int main() {
   pythia.init();
   //Hist mult("charged multiplicity", 100, -0.5, 799.5);
 
-  std::ofstream dat,jet_anti_kt,dipole_kt_dat, test, dipole_hist,antikt_hist;
+  std::ofstream dat,jet_anti_kt,dipole_kt_dat, test, dipole_hist,antikt_hist, dat_dipole_true, dat_anti_true;
   dat.open("higgs_bb_raspad.txt");
   jet_anti_kt.open("anti_kt_rekonstr_bbbar.txt");
   dipole_kt_dat.open("dipol_kt_alg.txt");
@@ -67,6 +67,9 @@ int main() {
   antikt_hist.open("antikt_broj_rek_jetova.txt");
 
   test.open("test.txt");
+
+  dat_dipole_true.open("dat_dipole_true.txt");
+  dat_anti_true.open("dat_anti_true.txt");
 
 
 
@@ -88,8 +91,10 @@ int main() {
   int d1_no = -1,d2_no = -1, h_no=-1;
    
   dat<<"px(Higgs)  py(Higgs)  pz(Higgs)  energ(Higgs)  masa(Higgs)  px(cest_1)  py(cest_1)  pz(cest_1)  energ(cest_1)  masa(cest_1)  px(cest_2)  py(cest_2)  pz(cest_2)  energ(cest_2)  masa(cest_2)"<<endl;
-  jet_anti_kt<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
-  dipole_kt_dat<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
+  jet_anti_kt<<"px(1, true)   py(1, true)   pz(1, true)   E(1, true)  px(2, true)   py(2, true)   pz(2, true)   E(2, true)   px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
+  dipole_kt_dat<<"px(1, true)   py(1, true)   pz(1, true)   E(1, true)  px(2, true)   py(2, true)   pz(2, true)   E(2, true)   px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
+  /*dat_dipole_true<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)  --> True values"<<endl;
+  dat_anti_true<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)  --> True values"<<endl;*/
 
   // Begin event loop. Generate event. Skip if error. List first one.
   for (int iEvent = 0; iEvent < 1000; ++iEvent) {
@@ -129,6 +134,7 @@ int main() {
         vector <fastjet::PseudoJet> sortedJets;      
 	sortedJets = clustSeq.inclusive_jets(10); //broj oznacava min pt
 
+  //provjeravamo rekonstruirane jetove za svaki dog. --> (anti_kt)
 	antikt_hist<<sortedJets.size()<<endl;
 
   //jet rekonstrukcija dipoleKT
@@ -137,46 +143,48 @@ int main() {
 	clus.cluster(tracks,test);
         std::vector<Vec4> dipolekt_jets = clus.getJets();
 
+  //provjeravamo rekonstruirane jetove za svaki dogadjaj (dipole_kt)
 	dipole_hist<< dipolekt_jets.size()<<endl;
 
   //gledamo samo slucajeve sa 2 jeta (nakon dipole kt alg)
-	/*if(dipolekt_jets.size()==2)
+	if(dipolekt_jets.size()==2)
 	{
+		/*dat_dipole_true<<pythia.event[d1_no].px()<<"     "<<pythia.event[d1_no].py()<<"     "<<pythia.event[d1_no].pz()<<"     "<<pythia.event[d1_no].e()<<"     "<<
+				 pythia.event[d2_no].px()<<"     "<<pythia.event[d2_no].py()<<"     "<<pythia.event[d2_no].pz()<<"     "<<pythia.event[d2_no].e()<<endl;*/
+
 		//cout<<dipolekt_jets[0]<<endl;
-		dipole_kt_dat<<dipolekt_jets[0].px()<<"     "<<dipolekt_jets[0].py()<<"     "<<dipolekt_jets[0].pz()<<"     "<<dipolekt_jets[0].e()<<"     "<<
+		dipole_kt_dat<<pythia.event[d1_no].px()<<"     "<<pythia.event[d1_no].py()<<"     "<<pythia.event[d1_no].pz()<<"     "<<pythia.event[d1_no].e()<<"     "<<
+			       pythia.event[d2_no].px()<<"     "<<pythia.event[d2_no].py()<<"     "<<pythia.event[d2_no].pz()<<"     "<<pythia.event[d2_no].e()<<"     "<<
+			       dipolekt_jets[0].px()<<"     "<<dipolekt_jets[0].py()<<"     "<<dipolekt_jets[0].pz()<<"     "<<dipolekt_jets[0].e()<<"     "<<
 			       dipolekt_jets[1].px()<<"     "<<dipolekt_jets[1].py()<<"     "<<dipolekt_jets[1].pz()<<"     "<<dipolekt_jets[1].e()<<endl;
 		
-	}*/
+	}
 
 
 
 
 
   //gledamo samo slucajeve sa 2 jeta  (nakon anti kt alg)
-	/*if(sortedJets.size()==2)
+	if(sortedJets.size()==2)
 	{
-		jet_anti_kt<<sortedJets[0].px()<<"     "<<sortedJets[0].py()<<"     "<<sortedJets[0].pz()<<"     "<<sortedJets[0].E()<<"     "<<
+		/*dat_anti_true<<pythia.event[d1_no].px()<<"     "<<pythia.event[d1_no].py()<<"     "<<pythia.event[d1_no].pz()<<"     "<<pythia.event[d1_no].e()<<"     "<<
+			       pythia.event[d2_no].px()<<"     "<<pythia.event[d2_no].py()<<"     "<<pythia.event[d2_no].pz()<<"     "<<pythia.event[d2_no].e()<<endl;*/
+
+   		///////
+		jet_anti_kt<<pythia.event[d1_no].px()<<"     "<<pythia.event[d1_no].py()<<"     "<<pythia.event[d1_no].pz()<<"     "<<pythia.event[d1_no].e()<<"     "<<
+			     pythia.event[d2_no].px()<<"     "<<pythia.event[d2_no].py()<<"     "<<pythia.event[d2_no].pz()<<"     "<<pythia.event[d2_no].e()<<"     "<<
+			     sortedJets[0].px()<<"     "<<sortedJets[0].py()<<"     "<<sortedJets[0].pz()<<"     "<<sortedJets[0].E()<<"     "<<
 			     sortedJets[1].px()<<"     "<<sortedJets[1].py()<<"     "<<sortedJets[1].pz()<<"     "<<sortedJets[1].E()<<endl;
 			
-	}*/
+	}
 	
  //true values od higgsa i podaci za b i bbar direktno iz pythia outputa
  //za navedene uvjete upisujemo u sve 3 datoteke tako da u svima bude isti broj događaja koji odgovaraju jedan drugom
 
-  if(d1_no != -1 && d2_no != -1 && sortedJets.size()==2 && dipolekt_jets.size()==2)
+  if(d1_no != -1 && d2_no != -1)
 	  {
 		//dat<<iEvent<<"\t"<<pythia.event[d1_no].id()<<"\t"<<pythia.event[d2_no].id()<<endl;
 		dat<<pythia.event[h_no].px()<<"     "<<pythia.event[h_no].py()<<"     "<<pythia.event[h_no].pz()<<"     "<<pythia.event[h_no].e()<<"     "<<pythia.event[h_no].m()<<"     "<<pythia.event[d1_no].px()<<"     "<<pythia.event[d1_no].py()<<"     "<<pythia.event[d1_no].pz()<<"     "<<pythia.event[d1_no].e()<<"     "<<pythia.event[d1_no].m()<<"     "<<pythia.event[d2_no].px()<<"     "<<pythia.event[d2_no].py()<<"     "<<pythia.event[d2_no].pz()<<"     "<<pythia.event[d2_no].e()<<"     "<<pythia.event[d2_no].m()<<endl;
-
-
-	//upis jetova iz dipol_kt alg
-		dipole_kt_dat<<dipolekt_jets[0].px()<<"     "<<dipolekt_jets[0].py()<<"     "<<dipolekt_jets[0].pz()<<"     "<<dipolekt_jets[0].e()<<"     "<<
-			       dipolekt_jets[1].px()<<"     "<<dipolekt_jets[1].py()<<"     "<<dipolekt_jets[1].pz()<<"     "<<dipolekt_jets[1].e()<<endl;
-
-
-	//upis jetova iz anti_kt alg
-		jet_anti_kt<<sortedJets[0].px()<<"     "<<sortedJets[0].py()<<"     "<<sortedJets[0].pz()<<"     "<<sortedJets[0].E()<<"     "<<
-			     sortedJets[1].px()<<"     "<<sortedJets[1].py()<<"     "<<sortedJets[1].pz()<<"     "<<sortedJets[1].E()<<endl;
 		
 		
           }
@@ -192,6 +200,8 @@ int main() {
   dipole_hist.close();
   antikt_hist.close();
   pythia.stat();
+  dat_dipole_true.close();
+  dat_anti_true.close();
   //cout << mult;
   return 0;
 }
