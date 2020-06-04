@@ -22,6 +22,7 @@ public:
 	void citanje_iz_datoteke(string filename);
 	void anti_kt_histo(string filename);
 	void dipole_kt_histo(string filename);
+	void kt_histo(string filename);
 	void histogram_rek_jetova(string filename1, string filename2);
 	void Crtanje();
 	bool _skipFirstLine;
@@ -57,6 +58,6 @@ public:
 	double temp;
 
 	TLorentzVector b,bbar,b_true, bbar_true, higgs_true,higgs_rekonstr,higgs_pyt_outpt;
-	TH1F *higgs_pt_rekonstr, *higgs_m_rekonstr, *higgs_pt_pyt_outpt, *higgs_m_pyt_outpt, *histo_akt_pt, *histo_akt_rap, *higgs_pt_true, *higgs_m_true, *histo_dkt_pt, *histo_dkt_rap, *histo_test, *histo_test1;
+	TH1F *higgs_pt_rekonstr, *higgs_m_rekonstr, *higgs_pt_pyt_outpt, *higgs_m_pyt_outpt, *histo_akt_pt, *histo_akt_rap, *higgs_pt_true, *higgs_m_true, *histo_dkt_pt, *histo_dkt_rap, *histo_test, *histo_test1, *histo_kt_pt, *histo_kt_rap;
 	
 };

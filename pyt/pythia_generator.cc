@@ -58,15 +58,17 @@ int main() {
   pythia.init();
   //Hist mult("charged multiplicity", 100, -0.5, 799.5);
 
-  std::ofstream dat,jet_anti_kt,dipole_kt_dat, test, dipole_hist,antikt_hist, dat_dipole_true, dat_anti_true;
+  std::ofstream dat,jet_anti_kt,dipole_kt_dat, test, dipole_hist,antikt_hist, dat_dipole_true, dat_anti_true, jet_kt, kt_hist;
   dat.open("higgs_bb_raspad.txt");
   jet_anti_kt.open("anti_kt_rekonstr_bbbar.txt");
   dipole_kt_dat.open("dipol_kt_alg.txt");
+  jet_kt.open("kt_alg_rekonstr.txt");
 
   dipole_hist.open("broj_rek_jetova_po_dog_dipolekt.txt");
   antikt_hist.open("antikt_broj_rek_jetova.txt");
+  kt_hist.open("kt_broj_rek_jetova.txt");
 
-  test.open("test.txt");
+  
 
   dat_dipole_true.open("dat_dipole_true.txt");
   dat_anti_true.open("dat_anti_true.txt");
@@ -77,22 +79,28 @@ int main() {
   double Rparam = 0.3;
   fastjet::Strategy               strategy = fastjet::Best;
   fastjet::RecombinationScheme    recombScheme = fastjet::E_scheme;
-  fastjet::JetDefinition         *jetDef = NULL;
+  fastjet::JetDefinition         *jetDef = NULL, *jetDef_kt = NULL;
   jetDef = new fastjet::JetDefinition(fastjet::antikt_algorithm, Rparam,
                                       recombScheme, strategy);
+
+  jetDef_kt = new fastjet::JetDefinition(fastjet::kt_algorithm, Rparam, recombScheme, strategy);
  
   //priprema za dipole_kt
 
   InterKT::Clustering<Vec4> clus;
-  
-  clus.cutkt = 10.0;
-  //clus.nmin = 2;
+  //clus.maxMIpt2 = 1.0;
+  //clus.cutkt = 0.4;
+  //InterKT::Calorimeter<Vec4> calo(60, 100, -5.0, 5.0);
+
+  //clus.cutkt = 10.0;
+  clus.nmin = 2;
   
   int d1_no = -1,d2_no = -1, h_no=-1;
    
   dat<<"px(Higgs)  py(Higgs)  pz(Higgs)  energ(Higgs)  masa(Higgs)  px(cest_1)  py(cest_1)  pz(cest_1)  energ(cest_1)  masa(cest_1)  px(cest_2)  py(cest_2)  pz(cest_2)  energ(cest_2)  masa(cest_2)"<<endl;
   jet_anti_kt<<"px(1, true)   py(1, true)   pz(1, true)   E(1, true)  px(2, true)   py(2, true)   pz(2, true)   E(2, true)   px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
   dipole_kt_dat<<"px(1, true)   py(1, true)   pz(1, true)   E(1, true)  px(2, true)   py(2, true)   pz(2, true)   E(2, true)   px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
+  jet_kt<<"px(1, true)   py(1, true)   pz(1, true)   E(1, true)  px(2, true)   py(2, true)   pz(2, true)   E(2, true)   px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)"<<endl;
   /*dat_dipole_true<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)  --> True values"<<endl;
   dat_anti_true<<"px(1)   py(1)   pz(1)   E(1)  px(2)   py(2)   pz(2)   E(2)  --> True values"<<endl;*/
 
@@ -104,8 +112,10 @@ int main() {
     d2_no=-1;
 
     std::vector <fastjet::PseudoJet> finalParticles;
-    std::vector<Vec4> tracks;
-    multimap<double,Vec4> sorted;
+    std::vector<fastjet::PseudoJet> finalParticles_kt;
+    std::vector <Vec4> tracks;
+    test.open("test.txt");
+    //multimap<double,Vec4> sorted;
 
     for (int i = 0; i < pythia.event.size(); ++i){ //petlja po svakoj čestici (tu možemo gledati njihova svojstva
       if(pythia.event[i].id() == 25 && pythia.event[i].daughter1()!=pythia.event[i].daughter2())
@@ -123,6 +133,8 @@ int main() {
 	{
 		finalParticles.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
 
+		finalParticles_kt.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
+
 	  /// donja linija za dipoleKT
 		tracks.push_back(pythia.event[i].p()); //// vektor za funkciju cluster!!!!!!! ---> radi
 	}
@@ -132,13 +144,20 @@ int main() {
   //jet rekonstrukcija anti_kt
 	fastjet::ClusterSequence clustSeq(finalParticles, *jetDef);
         vector <fastjet::PseudoJet> sortedJets;      
-	sortedJets = clustSeq.inclusive_jets(10); //broj oznacava min pt
+	//sortedJets = clustSeq.inclusive_jets(10); //broj oznacava min pt
+	sortedJets = clustSeq.exclusive_jets(2); //moze dat error
 
   //provjeravamo rekonstruirane jetove za svaki dog. --> (anti_kt)
 	antikt_hist<<sortedJets.size()<<endl;
 
-  //jet rekonstrukcija dipoleKT
 
+	fastjet::ClusterSequence clustSeq_kt(finalParticles_kt, *jetDef_kt);
+	vector <fastjet::PseudoJet> jets_kt;
+	jets_kt = clustSeq_kt.exclusive_jets(2);
+
+	kt_hist<<jets_kt.size()<<endl;
+
+  //jet rekonstrukcija dipoleKT
 	
 	clus.cluster(tracks,test);
         std::vector<Vec4> dipolekt_jets = clus.getJets();
@@ -158,6 +177,15 @@ int main() {
 			       dipolekt_jets[0].px()<<"     "<<dipolekt_jets[0].py()<<"     "<<dipolekt_jets[0].pz()<<"     "<<dipolekt_jets[0].e()<<"     "<<
 			       dipolekt_jets[1].px()<<"     "<<dipolekt_jets[1].py()<<"     "<<dipolekt_jets[1].pz()<<"     "<<dipolekt_jets[1].e()<<endl;
 		
+	}
+
+
+	if(jets_kt.size() == 2)
+	{
+		       jet_kt<<pythia.event[d1_no].px()<<"     "<<pythia.event[d1_no].py()<<"     "<<pythia.event[d1_no].pz()<<"     "<<pythia.event[d1_no].e()<<"     "<<
+			       pythia.event[d2_no].px()<<"     "<<pythia.event[d2_no].py()<<"     "<<pythia.event[d2_no].pz()<<"     "<<pythia.event[d2_no].e()<<"     "<<
+			       jets_kt[0].px()<<"     "<<jets_kt[0].py()<<"     "<<jets_kt[0].pz()<<"     "<<jets_kt[0].e()<<"     "<<
+			       jets_kt[1].px()<<"     "<<jets_kt[1].py()<<"     "<<jets_kt[1].pz()<<"     "<<jets_kt[1].e()<<endl;
 	}
 
 
@@ -190,13 +218,16 @@ int main() {
           }
 	
   // End of event loop. Statistics. Histogram. Done.
+  test.close();
   }
   
 
   dat.close();
   jet_anti_kt.close();
   dipole_kt_dat.close();
-  test.close();
+  jet_kt.close();
+  kt_hist.close();
+  
   dipole_hist.close();
   antikt_hist.close();
   pythia.stat();

@@ -93,8 +93,8 @@ void Analyzer::anti_kt_histo(string filename)
   TCanvas *ca = new TCanvas("ca","ca",1000,500);
   ca->Divide(2,1);
 
-   histo_akt_pt = new TH1F("anti_kt_alg_pt","",9,-1,2);
-   histo_akt_rap = new TH1F("anti_kt_alg_rap","",20,-5,5);
+   histo_akt_pt = new TH1F("anti_kt_alg_pt","",54,-1,2);
+   histo_akt_rap = new TH1F("anti_kt_alg_rap","",80,-5,5);
 	
   ifstream myReadFile;
   myReadFile.open(filename.c_str());
@@ -130,13 +130,15 @@ void Analyzer::anti_kt_histo(string filename)
 	higgs_true = b_true + bbar_true;
 	
 
-	histo_akt_pt->Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
+	//histo_akt_pt->Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
+	histo_akt_pt -> Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
 
 	histo_akt_rap->Fill(higgs_rekonstr.Rapidity()/higgs_true.Rapidity());
 
     }
   }
   
+   myReadFile.close();
 
   histo_akt_pt -> Scale(1/histo_akt_pt->Integral());
   histo_akt_rap -> Scale(1/histo_akt_rap -> Integral());
@@ -158,8 +160,8 @@ void Analyzer::dipole_kt_histo(string filename)
    TCanvas *cb = new TCanvas("cb","cb",1000,500);
    cb->Divide(2,1);
 
-   histo_dkt_pt = new TH1F("dipole_kt_alg_pt","",9,-1,2);
-   histo_dkt_rap = new TH1F("dipole_kt_alg_rap","",20,-5,5);
+   histo_dkt_pt = new TH1F("dipole_kt_alg_pt","",54,-1,2);
+   histo_dkt_rap = new TH1F("dipole_kt_alg_rap","",80,-5,5);
 	
 
  ifstream myReadFile;
@@ -198,9 +200,13 @@ void Analyzer::dipole_kt_histo(string filename)
 
 
 	histo_dkt_pt->Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
+	//histo_dkt_pt -> Fill(bbar.Pt()/bbar_true.Pt());
+
 	histo_dkt_rap->Fill(higgs_rekonstr.Rapidity()/higgs_true.Rapidity());
 	}
    }
+
+   myReadFile.close();
 
   histo_dkt_pt -> Scale(1/histo_dkt_pt->Integral());
   histo_dkt_rap -> Scale(1/histo_dkt_rap -> Integral());
@@ -220,11 +226,78 @@ cb->SaveAs("dipole_kt_rekonstr.png");
 }
 
 
+void Analyzer::kt_histo(string filename)
+{
+
+   histo_kt_pt = new TH1F("kt_alg_pt","",54,-1,2);
+   histo_kt_rap = new TH1F("kt_alg_rap","",80,-5,5);
+	
+
+ ifstream myReadFile;
+  myReadFile.open(filename.c_str());
+  string line;
+
+  _skipFirstLine = true;
+
+  if (myReadFile.is_open())
+  {
+    // Read the file line by line
+    while(getline(myReadFile, line))
+    {
+        stringstream   linestream(line);
+      	
+	if (_skipFirstLine)
+        {
+          _skipFirstLine = false;
+          continue;
+        }
+
+
+        // Read output and send it to dedicated variables
+        linestream >> particle1_px_true >> particle1_py_true >> particle1_pz_true >> particle1_en_true >> particle2_px_true >> particle2_py_true >> particle2_pz_true >> particle2_en_true >> 
+		      particle1_px >> particle1_py >> particle1_pz >> particle1_en >> particle2_px >> particle2_py >> particle2_pz >> particle2_en;
+
+
+	b_true.SetPxPyPzE(particle1_px_true,particle1_py_true,particle1_pz_true,particle1_en_true);
+	bbar_true.SetPxPyPzE(particle2_px_true,particle2_py_true,particle2_pz_true,particle2_en_true);
+
+	b.SetPxPyPzE(particle1_px,particle1_py,particle1_pz,particle1_en);
+	bbar.SetPxPyPzE(particle2_px,particle2_py,particle2_pz,particle2_en);
+
+	higgs_rekonstr = b + bbar;
+	higgs_true = b_true + bbar_true;
+
+
+	histo_kt_pt->Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
+
+	histo_kt_rap->Fill(higgs_rekonstr.Rapidity()/higgs_true.Rapidity());
+	}
+   }
+
+   myReadFile.close();
+
+  histo_kt_pt -> Scale(1/histo_kt_pt->Integral());
+  histo_kt_rap -> Scale(1/histo_kt_rap -> Integral());
+
+
+/*cb->cd(1);
+histo_dkt_pt->SetTitle("dipole_kt Pt vs True Pt");
+histo_dkt_pt->GetXaxis()->SetTitle("dipole_kt Pt / true Pt"); 
+histo_dkt_pt->Draw("histo");
+
+cb->cd(2);
+histo_dkt_rap->SetTitle("dipole_kt Rapidity vs True Rapidity");
+histo_dkt_rap->GetXaxis()->SetTitle("dipole_kt Rapidity / true Rapidity");
+histo_dkt_rap->Draw("histo");
+
+cb->SaveAs("dipole_kt_rekonstr.png");*/
+}
+
 
 void Analyzer::histogram_rek_jetova(string filename1, string filename2)
 {
-	TCanvas *cc = new TCanvas("cc","cc",1000,500);
-	cc->Divide(2,1);
+	TCanvas *cc = new TCanvas("cc","cc",600,600);
+	//cc->Divide(2,1);
 	histo_test = new TH1F("dipole_jetovi","",4,0,4);
 	histo_test1 = new TH1F("antikt_jetovi","",4,0,4);
 
@@ -270,38 +343,52 @@ ifstream myReadFile2;
 	histo_test1->Fill(br2);
 }}
 
-cc->cd(1);
-histo_test->SetTitle("Dipole_kt alg (10 GeV)");
+//cc->cd(1);
+histo_test->SetTitle("Broj rek. jetova po dog za _kt i dipole_kt algoritam");
+histo_test->SetLineColor(2);
 histo_test->Draw();
-cc->cd(2);
-histo_test1->SetTitle("anti_kt alg (10 GeV)");
-histo_test1->Draw();
+//cc->cd(2);
+//histo_test1->SetTitle("anti_kt alg (10 GeV)");
+histo_test1->Draw("same");
+
+TLegend *legend2 = new TLegend(0.1,0.8,0.3,0.9);
+
+legend2->AddEntry(histo_test,"dipole_kt_jetovi","l");
+legend2->AddEntry(histo_test1,"_kt_jetovi","l");
+
+legend2->Draw("same");
+
+
 cc->SaveAs("rekonstr_jetovi_100_GeV.png");
 }
 
 void Analyzer::Crtanje()
 {
-	TCanvas *cf = new TCanvas("cf","cf",1000,500);
+	TCanvas *cf = new TCanvas("cf","cf",1500,1000);
    	cf->Divide(2,1);
 
 cf->cd(1);
- histo_akt_pt->SetTitle("anti_kt Pt vs dipole_kt Pt");
+ histo_akt_pt->SetTitle("anti_kt Pt vs dipole_kt Pt vs kt Pt (n = 2)");
  histo_akt_pt->GetXaxis()->SetTitle("alg Pt / true Pt"); 
  histo_akt_pt->Draw("histo");
  
 histo_dkt_pt->SetLineColor(2);
 histo_dkt_pt->Draw("histo, same");
 
+histo_kt_pt->SetLineColor(209);
+histo_kt_pt->Draw("histo, same");
+
 TLegend *legend1 = new TLegend(0.1,0.8,0.3,0.9);
 
 legend1->AddEntry(histo_akt_pt,"anti_kt_pt","l");
 legend1->AddEntry(histo_dkt_pt,"dipole_kt_pt","l");
+legend1->AddEntry(histo_kt_pt,"kt_pt","l");
 
 legend1->Draw("same");
 gStyle->SetOptStat(0);
 
 cf->cd(2);
-histo_akt_rap->SetTitle("anti_kt Rapidity vs dipole_kt Rapidity");
+histo_akt_rap->SetTitle("anti_kt Rapidity vs dipole_kt Rapidity vs kt Rapidity");
  histo_akt_rap->GetXaxis()->SetTitle("alg Rapidity / true Rapidity");
  histo_akt_rap->Draw("histo");
 
@@ -309,11 +396,14 @@ histo_akt_rap->SetTitle("anti_kt Rapidity vs dipole_kt Rapidity");
 histo_dkt_rap->SetLineColor(2);
 histo_dkt_rap->Draw("histo, same");
 
+histo_kt_rap->SetLineColor(209);
+histo_kt_rap->Draw("histo, same");
+
 TLegend *legend2 = new TLegend(0.1,0.8,0.3,0.9);
 
 legend2->AddEntry(histo_akt_rap,"anti_kt_rap","l");
 legend2->AddEntry(histo_dkt_rap,"dipole_kt_rap","l");
-
+legend2->AddEntry(histo_kt_rap,"kt_rap","l");
 legend2->Draw("same");
 gStyle->SetOptStat(0);
 
