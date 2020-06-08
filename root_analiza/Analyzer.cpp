@@ -5,11 +5,11 @@ void Analyzer::citanje_iz_datoteke(string filename) //pripremit 6 histograma za 
   /*TCanvas *c = new TCanvas("c","c",1000,500);
   c->Divide(2,1);*/
   higgs_m_rekonstr = new TH1F("masa_rekonstr_higgsa","",32,122,128);		//od 2 b kvarka
-  higgs_pt_rekonstr = new TH1F("trans_mom_rekonstr_higgsa","",60,990,1030);         //////////////////////////// ovo variramo
+  higgs_pt_rekonstr = new TH1F("trans_mom_rekonstr_higgsa","",60,1190,1230);         //////////////////////////// ovo variramo
   higgs_rap_rekonstr = new TH1F("rapiditet_rekonstr_higgsa","",50,-10,10); // .h
 
   higgs_m_pyt_outpt= new TH1F("masa_original_higgsa","",32,122,128);		//iz pythia outpt direktno
-  higgs_pt_pyt_outpt = new TH1F("trans_mom_original_higgsa","",60,990,1030);	////////////////////////////// ovo variramo
+  higgs_pt_pyt_outpt = new TH1F("trans_mom_original_higgsa","",60,1190,1230);	////////////////////////////// ovo variramo
   higgs_rap_pyt_outpt = new TH1F("rapiditet_original_higgsa","",50,-10,10);
 
  			
@@ -96,7 +96,8 @@ void Analyzer::anti_kt_histo(string filename) // ovu ne diramo
   ca->Divide(2,1);*/
 
    histo_akt_pt = new TH1F("anti_kt_alg_pt","",80,0.9,1.04);
-   histo_akt_rap = new TH1F("anti_kt_alg_rap","",80,0.94,1.06);
+   histo_akt_rap = new TH1F("anti_kt_alg_rap","",80,-0.1,0.1);
+   higgs_m_nakon_akt = new TH1F("masa_nakon_akt","",80,100,150);
 	
   ifstream myReadFile;
   myReadFile.open(filename.c_str());
@@ -131,11 +132,12 @@ void Analyzer::anti_kt_histo(string filename) // ovu ne diramo
 	higgs_rekonstr = b + bbar;
 	higgs_true = b_true + bbar_true;
 	
+	higgs_m_nakon_akt->Fill(higgs_rekonstr.M());
 
 	//histo_akt_pt->Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
 	histo_akt_pt -> Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
 
-	histo_akt_rap->Fill(higgs_rekonstr.Rapidity()/higgs_true.Rapidity());
+	histo_akt_rap->Fill(fabs(higgs_rekonstr.Rapidity() - higgs_true.Rapidity()));
 
     }
   }
@@ -144,6 +146,7 @@ void Analyzer::anti_kt_histo(string filename) // ovu ne diramo
 
   histo_akt_pt -> Scale(1/histo_akt_pt->Integral());
   histo_akt_rap -> Scale(1/histo_akt_rap -> Integral());
+  higgs_m_nakon_akt -> Scale(1/higgs_m_nakon_akt -> Integral());
 
  /*ca->cd(1);
  histo_akt_pt->SetTitle("anti_kt Pt vs True Pt");
@@ -163,7 +166,8 @@ void Analyzer::dipole_kt_histo(string filename) // ovu ne diramo
    cb->Divide(2,1);*/
 
    histo_dkt_pt = new TH1F("dipole_kt_alg_pt","",80,0.9,1.04);  //0.9 - 1.04
-   histo_dkt_rap = new TH1F("dipole_kt_alg_rap","",80,0.94,1.06);
+   histo_dkt_rap = new TH1F("dipole_kt_alg_rap","",80,-0.1,0.1);
+   higgs_m_nakon_dkt = new TH1F("masa_nakon_dkt","",80,100,150);
 	
 
  ifstream myReadFile;
@@ -200,19 +204,21 @@ void Analyzer::dipole_kt_histo(string filename) // ovu ne diramo
 	higgs_rekonstr = b + bbar;
 	higgs_true = b_true + bbar_true;
 
+	higgs_m_nakon_dkt->Fill(higgs_rekonstr.M());
 
 	histo_dkt_pt->Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
 	//histo_dkt_pt -> Fill(bbar.Pt()/bbar_true.Pt());
 
-	histo_dkt_rap->Fill(higgs_rekonstr.Rapidity()/higgs_true.Rapidity());
+	histo_dkt_rap->Fill(fabs(higgs_rekonstr.Rapidity() - higgs_true.Rapidity()));
 	}
    }
 
    myReadFile.close();
 
+  
   histo_dkt_pt -> Scale(1/histo_dkt_pt->Integral());
   histo_dkt_rap -> Scale(1/histo_dkt_rap -> Integral());
-
+  higgs_m_nakon_dkt -> Scale(1/higgs_m_nakon_dkt -> Integral());
 
 /*cb->cd(1);
 histo_dkt_pt->SetTitle("dipole_kt Pt vs True Pt");
@@ -232,7 +238,8 @@ void Analyzer::kt_histo(string filename) // ovu ne diramo
 {
 
    histo_kt_pt = new TH1F("kt_alg_pt","",80,0.9,1.04);
-   histo_kt_rap = new TH1F("kt_alg_rap","",80,0.94,1.06);
+   histo_kt_rap = new TH1F("kt_alg_rap","",80,-0.1,0.1);
+   higgs_m_nakon_kt = new TH1F("masa_nakon_kt","",80,100,150);
 	
 
  ifstream myReadFile;
@@ -270,9 +277,11 @@ void Analyzer::kt_histo(string filename) // ovu ne diramo
 	higgs_true = b_true + bbar_true;
 
 
+	higgs_m_nakon_kt->Fill(higgs_rekonstr.M());
+
 	histo_kt_pt->Fill(higgs_rekonstr.Pt()/higgs_true.Pt());
 
-	histo_kt_rap->Fill(higgs_rekonstr.Rapidity()/higgs_true.Rapidity());
+	histo_kt_rap->Fill(fabs(higgs_rekonstr.Rapidity() - higgs_true.Rapidity()));
 	}
    }
 
@@ -280,6 +289,7 @@ void Analyzer::kt_histo(string filename) // ovu ne diramo
 
   histo_kt_pt -> Scale(1/histo_kt_pt->Integral());
   histo_kt_rap -> Scale(1/histo_kt_rap -> Integral());
+  higgs_m_nakon_kt -> Scale(1/higgs_m_nakon_kt -> Integral());
 
 
 /*cb->cd(1);
@@ -392,7 +402,7 @@ legend2->Draw("same");
 gStyle->SetOptStat(0);
 
 
-cc->SaveAs("rekonstr_jetovi_tisucu_GeV.png"); /////////// variramo
+cc->SaveAs("rekonstr_jetovi_1200_GeV.png"); /////////// variramo
 }
 
 void Analyzer::Crtanje()
@@ -407,7 +417,7 @@ histo_dkt_pt->GetYaxis()->SetTitleOffset(1.7);
 histo_dkt_pt->GetXaxis()->SetTitle("p_{#perp}  /  p_{#perp 0}"); 
  histo_dkt_pt->GetYaxis()->SetTitle("Relativna frekvencija");
  //histo_akt_pt->GetYaxis()->SetLabelSize(0.1);
- histo_dkt_pt->GetYaxis()->SetRangeUser(0,0.6); ////////////////
+ histo_dkt_pt->GetYaxis()->SetRangeUser(0,0.65); ////////////////
  if (gPad) gPad->SetLeftMargin(0.15);
 
  histo_dkt_pt->SetLineColor(2);
@@ -438,10 +448,10 @@ gStyle->SetOptStat(0);
 cf->cd(2);
 
 histo_dkt_rap->GetYaxis()->SetTitleOffset(1.7);
- histo_dkt_rap->GetXaxis()->SetTitle("y / y_{0}");
+ histo_dkt_rap->GetXaxis()->SetTitle("|y - y_{0}|");
  histo_dkt_rap->SetLineWidth(2);
  histo_dkt_rap->GetYaxis()->SetTitle("Relativna frekvencija");
- histo_dkt_rap->GetYaxis()->SetRangeUser(0,0.4); //////////////////
+ histo_dkt_rap->GetYaxis()->SetRangeUser(0,0.85); //////////////////
   if (gPad) gPad->SetLeftMargin(0.15);
 
 histo_dkt_rap->SetLineColor(2);
@@ -470,7 +480,7 @@ legend2->AddEntry(histo_kt_rap,"k_{t} ekskluzivni, R = 0.3","l");
 legend2->Draw("same");
 gStyle->SetOptStat(0);
 
-cf->SaveAs("tisucu_Gev_Higgs_usporedba.png");   ///////////// variramo
+cf->SaveAs("1200_Gev_Higgs_usporedba.png");   ///////////// variramo
 
 
  TCanvas *ctrue = new TCanvas ("ctrue","ctrue",2000,1000);
@@ -523,9 +533,40 @@ cf->SaveAs("tisucu_Gev_Higgs_usporedba.png");   ///////////// variramo
 
  raptrue->AddEntry(higgs_rap_rekonstr,"b + #bar{b}","l");
  raptrue->AddEntry(higgs_rap_pyt_outpt,"Higgs", "l");
- raptrue->Draw("same");
+ raptrue->Draw("histo, same");
 
- ctrue->SaveAs("bbar_vs_Higgs_tisucu.png"); //////////////// variramo
+ ctrue->SaveAs("bbar_vs_Higgs_1200.png"); //////////////// variramo
+
+ TCanvas *cm = new TCanvas("cm","cm",600,600);
+ 
+ higgs_m_nakon_dkt->GetXaxis()->SetTitle("m");
+ higgs_m_nakon_dkt->GetYaxis()->SetTitle("Relativna frekvencija");
+ if (gPad) gPad->SetLeftMargin(0.15);
+ higgs_m_nakon_dkt->GetYaxis()->SetRangeUser(0,0.35);
+ higgs_m_nakon_dkt->SetLineColor(2);
+  higgs_m_nakon_dkt->SetLineWidth(2);
+ higgs_m_nakon_dkt->Draw("histo");
+
+ higgs_m_nakon_kt->SetLineColor(209);
+ higgs_m_nakon_kt->SetLineStyle(9);
+ higgs_m_nakon_kt->SetLineWidth(2);
+  higgs_m_nakon_kt->Draw("histo, same");
+
+  higgs_m_nakon_akt->SetLineWidth(2);
+  higgs_m_nakon_akt->SetLineStyle(5);
+  higgs_m_nakon_akt->Draw("histo, same");
+
+ TLegend *m_nakon_alg = new TLegend(0.15,0.8,0.45,0.9);
+
+ m_nakon_alg->AddEntry(higgs_m_nakon_dkt,"dipole k_{t}","l");
+ m_nakon_alg->AddEntry(higgs_m_nakon_akt,"anti k_{t}","l");
+ m_nakon_alg->AddEntry(higgs_m_nakon_kt,"k_{t}","l");
+
+ m_nakon_alg->Draw("same");
+ 
+ 
+
+ cm->SaveAs("masa_nakon_rekonstr_1200.png");
 
 
  

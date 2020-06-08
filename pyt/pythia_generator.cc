@@ -52,8 +52,8 @@ int main() {
 
   pythia.readString("HadronLevel:Hadronize = on");
  
-  pythia.readString("PhaseSpace:pTHatMin=1000"); ////////////////////to variramo
-  pythia.readString("PhaseSpace:pTHatMax=1020");
+  pythia.readString("PhaseSpace:pTHatMin=1200"); ////////////////////to variramo
+  pythia.readString("PhaseSpace:pTHatMax=1220");
   
   pythia.init();
   //Hist mult("charged multiplicity", 100, -0.5, 799.5);
@@ -69,6 +69,7 @@ int main() {
   antikt_hist.open("anti_kt_broj_rek_jetova.txt");
   kt_hist.open("kt_broj_rek_jetova.txt");
 
+  test.open("test.txt");
 
   // Fastjet analysis - select algorithm and parameters
   double Rparam = 0.3;
@@ -107,7 +108,7 @@ int main() {
     std::vector <fastjet::PseudoJet> finalParticles;
     std::vector<fastjet::PseudoJet> finalParticles_kt;
     std::vector <Vec4> tracks;
-    test.open("test.txt");
+    
     //multimap<double,Vec4> sorted;
 
     for (int i = 0; i < pythia.event.size(); ++i){ //petlja po svakoj čestici (tu možemo gledati njihova svojstva
@@ -207,10 +208,11 @@ int main() {
           }
 	
   // End of event loop. Statistics. Histogram. Done.
-  test.close();
+  
   }
   
   //cout<<pythia.event[h_no].m()<<endl;
+  test.close();
   dat.close();
   jet_anti_kt.close();
   dipole_kt_dat.close();
