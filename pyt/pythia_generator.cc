@@ -35,12 +35,16 @@ int main() {
   pythia.readString("Beams:eCM = 13000"); //energija 
   //pythia.readString("HardQCD:all = on");  // podprocesi zeljeni
   //pythia.readString("HiggsSM:gg2H = on");   // podprocesi zeljeni
-  pythia.readString("HiggsSM:ffbar2HZ = on");
+  //pythia.readString("HiggsSM:ffbar2HZ = on"); // signal
+  bool signal = false;
+
+  pythia.readString("HardQCD:gg2bbbar = on"); // pozadina
 
   pythia.readString("PartonLevel:ISR = off"); 
   pythia.readString("PartonLevel:FSR = off");  
   pythia.readString("PartonLevel:MPI = off");
   
+  //pythia.readString("Next:numberShowEvent = 3");
   //pythia.readString("HiggsSM:all = on");
   pythia.readString("25:m0 = 125.0");
    
@@ -52,8 +56,8 @@ int main() {
 
   pythia.readString("HadronLevel:Hadronize = on");
  
-  pythia.readString("PhaseSpace:pTHatMin=1200"); ////////////////////to variramo
-  pythia.readString("PhaseSpace:pTHatMax=1220");
+  pythia.readString("PhaseSpace:pTHatMin=1000"); ////////////////////to variramo
+  //pythia.readString("PhaseSpace:pTHatMax=520");
   
   pythia.init();
   //Hist mult("charged multiplicity", 100, -0.5, 799.5);
@@ -69,10 +73,10 @@ int main() {
   antikt_hist.open("anti_kt_broj_rek_jetova.txt");
   kt_hist.open("kt_broj_rek_jetova.txt");
 
-  test.open("test.txt");
-
+  
+  
   // Fastjet analysis - select algorithm and parameters
-  double Rparam = 0.3;
+  double Rparam = 0.8;
   fastjet::Strategy               strategy = fastjet::Best;
   fastjet::RecombinationScheme    recombScheme = fastjet::E_scheme;
   fastjet::JetDefinition         *jetDef = NULL, *jetDef_kt = NULL;
@@ -108,9 +112,15 @@ int main() {
     std::vector <fastjet::PseudoJet> finalParticles;
     std::vector<fastjet::PseudoJet> finalParticles_kt;
     std::vector <Vec4> tracks;
+    std::vector <Vec4> others;
+
+    test.open("test.txt");
+
     
     //multimap<double,Vec4> sorted;
-
+     
+if(signal)
+{
     for (int i = 0; i < pythia.event.size(); ++i){ //petlja po svakoj čestici (tu možemo gledati njihova svojstva
       if(pythia.event[i].id() == 25 && pythia.event[i].daughter1()!=pythia.event[i].daughter2())
 	{
@@ -132,8 +142,55 @@ int main() {
 	  /// donja linija za dipoleKT
 		tracks.push_back(pythia.event[i].p()); //// vektor za funkciju cluster!!!!!!! ---> radi
 	}
+
+	//za ubacivanje leptona u kt
+	
+      /*if(pythia.event[i].status()>0) 
+	{
+
+	finalParticles_kt.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
+}*/
+   
+       //ubacujemo leptone za dipole
+      if(pythia.event[i].id()==11 || pythia.event[i].id()==-11)
+	{
+		others.push_back(pythia.event[i].p());
+	}
 	
   }
+}
+
+////// pronalazimo b i bbar pozadine i ubacujemo sve finalne u algoritme
+else
+{
+ for (int i = 0; i < pythia.event.size(); ++i){ 
+      if(pythia.event[i].id() == 5 && pythia.event[i].daughter1()!=pythia.event[i].daughter2())
+	{		
+		d1_no = i;
+ 		//cout<<i<<"\t"<<pythia.event[i].id()<<endl;		  
+	}
+      
+      else if(pythia.event[i].id() == -5 && pythia.event[i].daughter1()!=pythia.event[i].daughter2())
+	{
+		d2_no = i;
+		//cout<<i<<endl;
+	}
+
+	//sve finalne cestice osim el/poz ubacujemo u anti_kt i kt alg za rekonstr jetova i dipole kt alg
+
+      if(pythia.event[i].status()>0)
+	{
+		finalParticles.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
+
+		finalParticles_kt.push_back(fastjet::PseudoJet(pythia.event[i].px(), pythia.event[i].py(), pythia.event[i].pz(), pythia.event[i].e()));
+
+	  /// donja linija za dipoleKT
+		tracks.push_back(pythia.event[i].p()); //// vektor za funkciju cluster!!!!!!! ---> radi
+	}
+	
+  }
+
+}
 	
   //jet rekonstrukcija anti_kt
 	fastjet::ClusterSequence clustSeq(finalParticles, *jetDef);
@@ -152,8 +209,11 @@ int main() {
 	kt_hist<<jets_kt.size()<<endl;
 
   //jet rekonstrukcija dipoleKT
-	
-	clus.cluster(tracks,test);
+	if(signal)
+		clus.cluster(tracks,test,others);
+	else
+		clus.cluster(tracks,test);
+
         std::vector<Vec4> dipolekt_jets = clus.getJets();
 
   //provjeravamo rekonstruirane jetove za svaki dogadjaj (dipole_kt)
@@ -199,6 +259,8 @@ int main() {
 	
  //true values od higgsa i podaci za b i bbar direktno iz pythia outputa
 
+if(signal)
+{
   if(d1_no != -1 && d2_no != -1)
 	  {
 		//dat<<iEvent<<"\t"<<pythia.event[d1_no].id()<<"\t"<<pythia.event[d2_no].id()<<endl;
@@ -206,13 +268,25 @@ int main() {
 		
 		
           }
+}
+
+else
+{
+   if(d1_no != -1 && d2_no != -1)
+	  {
+		dat<<pythia.event[d1_no].px()<<"     "<<pythia.event[d1_no].py()<<"     "<<pythia.event[d1_no].pz()<<"     "<<pythia.event[d1_no].e()<<"     "<<pythia.event[d1_no].m()
+	  <<"     "<<pythia.event[d2_no].px()<<"     "<<pythia.event[d2_no].py()<<"     "<<pythia.event[d2_no].pz()<<"     "<<pythia.event[d2_no].e()<<"     "<<pythia.event[d2_no].m()<<endl;
+		
+		
+          }
+}
 	
   // End of event loop. Statistics. Histogram. Done.
-  
+  test.close();
   }
   
   //cout<<pythia.event[h_no].m()<<endl;
-  test.close();
+  
   dat.close();
   jet_anti_kt.close();
   dipole_kt_dat.close();
