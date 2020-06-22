@@ -24,6 +24,7 @@ public:
 	void dipole_kt_histo(string filename,bool signal);
 	void kt_histo(string filename,bool signal);
 	void histogram_rek_jetova(string filename1, string filename2, string filename3);
+	void ProvjeraKoda(string filename_dkt, string filename_kt);
 	void Crtanje_signal();
 	void Crtanje_pozadina();
 	bool _skipFirstLine;

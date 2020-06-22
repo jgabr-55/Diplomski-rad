@@ -82,7 +82,7 @@ void Analyzer::anti_kt_histo(string filename, bool signal) // ovu ne diramo
 {
 if(signal)
 {
-   histo_akt_pt = new TH1F("anti_kt_alg_pt","",80,0.9,1.04);
+   histo_akt_pt = new TH1F("anti_kt_alg_pt","",80,0.9,1.04); //0.9 1.04
    histo_akt_rap = new TH1F("anti_kt_alg_rap","",80,-0.1,0.1);
    higgs_m_nakon_akt = new TH1F("masa_nakon_akt","",80,100,150);
 }
@@ -125,6 +125,8 @@ else
 
 	b.SetPxPyPzE(particle1_px,particle1_py,particle1_pz,particle1_en);
 	bbar.SetPxPyPzE(particle2_px,particle2_py,particle2_pz,particle2_en);
+
+
 
 if(signal)
 {
@@ -201,6 +203,7 @@ else
 
 void Analyzer::dipole_kt_histo(string filename, bool signal) // ovu ne diramo
 {
+int pt_lead_out = 0, pt_sec_out = 0, rap_lead_out = 0, rap_sec_out = 0;
 if(signal)
 {
    histo_dkt_pt = new TH1F("dipole_kt_alg_pt","",80,0.9,1.04);  //0.9 - 1.04
@@ -209,10 +212,10 @@ if(signal)
 }
 else
 {
-   histo_dkt_pt = new TH1F("dipole_kt_alg_pt","",80,0.8,1.2);  //0.9 - 1.04
-   histo_dkt_rap = new TH1F("dipole_kt_alg_rap","",80,-0.1,0.2);	
-   histo_dkt_pt1 = new TH1F("dipole_kt_alg_pt1","",80,0.8,1.2);
-   histo_dkt_rap1 = new TH1F("dipole_kt_alg_rap1","",80,-0.1,0.2);
+   histo_dkt_pt = new TH1F("dipole_kt_alg_pt","",100,0,2);  //0.9 - 1.04
+   histo_dkt_rap = new TH1F("dipole_kt_alg_rap","",105,-3,3);	
+   histo_dkt_pt1 = new TH1F("dipole_kt_alg_pt1","",100,0,2);
+   histo_dkt_rap1 = new TH1F("dipole_kt_alg_rap1","",105,-3,3);
 
    higgs_m_nakon_dkt = new TH1F("masa_nakon_dkt","",200,1000,3000);
 }
@@ -242,11 +245,13 @@ else
 		      particle1_px >> particle1_py >> particle1_pz >> particle1_en >> particle2_px >> particle2_py >> particle2_pz >> particle2_en;
 
 
-	b_true.SetPxPyPzE(particle1_px_true,particle1_py_true,particle1_pz_true,particle1_en_true);
-	bbar_true.SetPxPyPzE(particle2_px_true,particle2_py_true,particle2_pz_true,particle2_en_true);
+	b_true.SetPxPyPzE(particle1_px_true,particle1_py_true,particle1_pz_true,particle1_en_true); // true 1 gluon
+	bbar_true.SetPxPyPzE(particle2_px_true,particle2_py_true,particle2_pz_true,particle2_en_true); // true 2. gluon
 
-	b.SetPxPyPzE(particle1_px,particle1_py,particle1_pz,particle1_en);
-	bbar.SetPxPyPzE(particle2_px,particle2_py,particle2_pz,particle2_en);
+	b.SetPxPyPzE(particle1_px,particle1_py,particle1_pz,particle1_en); // 1. rek gluon
+	bbar.SetPxPyPzE(particle2_px,particle2_py,particle2_pz,particle2_en); // 2. rek gluon
+
+	//cout<<b_true.Rapidity()<<"\t"<<bbar_true.Rapidity()<<endl;   //rapiditeti razliciti
 
 if(signal)
 {
@@ -282,8 +287,42 @@ else
 
 	histo_dkt_pt->Fill(leading_jet.Pt()/leading_jet_true.Pt());
 	histo_dkt_pt1->Fill(second_jet.Pt()/second_jet_true.Pt());
-	histo_dkt_rap->Fill(fabs(leading_jet.Rapidity() - leading_jet_true.Rapidity()));
-	histo_dkt_rap1->Fill(fabs(second_jet.Rapidity() - second_jet_true.Rapidity()));
+	
+	if((leading_jet.Pt()/leading_jet_true.Pt())>2.0 || (leading_jet.Pt()/leading_jet_true.Pt())<0.0)
+		pt_lead_out++;
+	if((second_jet.Pt()/second_jet_true.Pt())>2.0 || (second_jet.Pt()/second_jet_true.Pt())<0.0)
+		pt_sec_out++;
+	
+
+
+	if(fabs(b.Rapidity())<=fabs(bbar.Rapidity()))
+		{
+		leading_jet = b;
+		second_jet = bbar;
+		}
+	else{
+		leading_jet = bbar;
+		second_jet = b;
+		}
+		
+	if(fabs(b_true.Rapidity())<=fabs(bbar_true.Rapidity())){
+		leading_jet_true = b_true;
+		second_jet_true = bbar_true;
+		}
+	else{
+		leading_jet_true = bbar_true;
+		second_jet_true = b_true;
+		}
+
+	histo_dkt_rap->Fill(fabs(leading_jet.Rapidity()) - fabs(leading_jet_true.Rapidity()));
+	histo_dkt_rap1->Fill(fabs(second_jet.Rapidity()) - fabs(second_jet_true.Rapidity()));
+
+	if((fabs(leading_jet.Rapidity()) - fabs(leading_jet_true.Rapidity()))>3.0 || (fabs(leading_jet.Rapidity()) - fabs(leading_jet_true.Rapidity()))<-3.0)
+		rap_lead_out++;
+		//cout<<fabs(leading_jet.Rapidity()) - fabs(leading_jet_true.Rapidity())<<endl;}
+	if((fabs(second_jet.Rapidity()) - fabs(second_jet_true.Rapidity()))>3.0 ||(fabs(second_jet.Rapidity()) - fabs(second_jet_true.Rapidity()))<-3.0)
+		rap_sec_out++;
+
 
 	zbroj_pozadina = leading_jet + second_jet;
 
@@ -302,12 +341,13 @@ if(signal)
 }
 else
 {
-	histo_dkt_pt->Scale(1/histo_dkt_pt->Integral());
+	/*histo_dkt_pt->Scale(1/histo_dkt_pt->Integral());
 	histo_dkt_pt1->Scale(1/histo_dkt_pt1->Integral());
 	histo_dkt_rap->Scale(1/histo_dkt_rap->Integral());
 	histo_dkt_rap1->Scale(1/histo_dkt_rap1->Integral());
 
-	higgs_m_nakon_dkt -> Scale(1/higgs_m_nakon_dkt -> Integral());
+	higgs_m_nakon_dkt -> Scale(1/higgs_m_nakon_dkt -> Integral());*/
+	cout<<pt_lead_out<<"\t"<<pt_sec_out<<"\t"<<rap_lead_out<<"\t"<<rap_sec_out<<endl;
 }
 
 }
@@ -315,6 +355,7 @@ else
 
 void Analyzer::kt_histo(string filename, bool signal) // ovu ne diramo
 {
+int pt_lead_out = 0, pt_sec_out = 0, rap_lead_out = 0, rap_sec_out = 0;
 if(signal)
 {
    histo_kt_pt = new TH1F("kt_alg_pt","",80,0.9,1.04);
@@ -324,10 +365,10 @@ if(signal)
 
 else
 {
-   histo_kt_pt = new TH1F("kt_alg_pt","",80,0.8,1.2);
-   histo_kt_rap = new TH1F("kt_alg_rap","",80,-0.1,0.2);	
-   histo_kt_pt1 = new TH1F("kt_alg_pt1","",80,0.8,1.2);
-   histo_kt_rap1 = new TH1F("kt_alg_rap1","",80,-0.1,0.2);
+   histo_kt_pt = new TH1F("kt_alg_pt","",100,0,2);
+   histo_kt_rap = new TH1F("kt_alg_rap","",105,-3,3);	
+   histo_kt_pt1 = new TH1F("kt_alg_pt1","",100,0,2);
+   histo_kt_rap1 = new TH1F("kt_alg_rap1","",105,-3,3);
 
    higgs_m_nakon_kt = new TH1F("masa_nakon_kt","",200,1000,3000);
 }
@@ -357,11 +398,11 @@ else
 		      particle1_px >> particle1_py >> particle1_pz >> particle1_en >> particle2_px >> particle2_py >> particle2_pz >> particle2_en;
 
 
-	b_true.SetPxPyPzE(particle1_px_true,particle1_py_true,particle1_pz_true,particle1_en_true);
-	bbar_true.SetPxPyPzE(particle2_px_true,particle2_py_true,particle2_pz_true,particle2_en_true);
+	b_true.SetPxPyPzE(particle1_px_true,particle1_py_true,particle1_pz_true,particle1_en_true); // 1. gluon true
+	bbar_true.SetPxPyPzE(particle2_px_true,particle2_py_true,particle2_pz_true,particle2_en_true); //  2. gluon true
 
-	b.SetPxPyPzE(particle1_px,particle1_py,particle1_pz,particle1_en);
-	bbar.SetPxPyPzE(particle2_px,particle2_py,particle2_pz,particle2_en);
+	b.SetPxPyPzE(particle1_px,particle1_py,particle1_pz,particle1_en); // 1. rek gluon
+	bbar.SetPxPyPzE(particle2_px,particle2_py,particle2_pz,particle2_en); // 2. rek gluon
 
 if(signal)
 {
@@ -397,8 +438,41 @@ else
 
 	histo_kt_pt->Fill(leading_jet.Pt()/leading_jet_true.Pt());
 	histo_kt_pt1->Fill(second_jet.Pt()/second_jet_true.Pt());
-	histo_kt_rap->Fill(fabs(leading_jet.Rapidity() - leading_jet_true.Rapidity()));
-	histo_kt_rap1->Fill(fabs(second_jet.Rapidity() - second_jet_true.Rapidity()));
+	
+	if((leading_jet.Pt()/leading_jet_true.Pt())>2.0 || (leading_jet.Pt()/leading_jet_true.Pt())<0.0)
+		pt_lead_out++;
+	if((second_jet.Pt()/second_jet_true.Pt())>2.0 || (second_jet.Pt()/second_jet_true.Pt())<0.0)
+		pt_sec_out++;
+	
+	
+	if(fabs(b.Rapidity())<=fabs(bbar.Rapidity()))
+		{
+		leading_jet = b;
+		second_jet = bbar;
+		}
+	else{
+		leading_jet = bbar;
+		second_jet = b;
+		}
+		
+	if(fabs(b_true.Rapidity())<=fabs(bbar_true.Rapidity())){
+		leading_jet_true = b_true;
+		second_jet_true = bbar_true;
+		}
+	else{
+		leading_jet_true = bbar_true;
+		second_jet_true = b_true;
+		}
+
+	histo_kt_rap->Fill(fabs(leading_jet.Rapidity()) - fabs(leading_jet_true.Rapidity()));
+	histo_kt_rap1->Fill(fabs(second_jet.Rapidity()) - fabs(second_jet_true.Rapidity()));
+
+	if((fabs(leading_jet.Rapidity()) - fabs(leading_jet_true.Rapidity()))>3.0 || (fabs(leading_jet.Rapidity()) - fabs(leading_jet_true.Rapidity()))<-3.0)
+		rap_lead_out++;
+		//cout<<fabs(leading_jet.Rapidity()) - fabs(leading_jet_true.Rapidity())<<endl;}
+	if((fabs(second_jet.Rapidity()) - fabs(second_jet_true.Rapidity()))>3.0 ||(fabs(second_jet.Rapidity()) - fabs(second_jet_true.Rapidity()))<-3.0)
+		rap_sec_out++;
+
 
 	zbroj_pozadina = leading_jet + second_jet;
 
@@ -418,12 +492,14 @@ if(signal)
 
 else
 {
-	histo_kt_pt->Scale(1/histo_kt_pt->Integral());
+	/*histo_kt_pt->Scale(1/histo_kt_pt->Integral());
 	histo_kt_pt1->Scale(1/histo_kt_pt1->Integral());
 	histo_kt_rap->Scale(1/histo_kt_rap->Integral());
 	histo_kt_rap1->Scale(1/histo_kt_rap1->Integral());
 
-	higgs_m_nakon_kt -> Scale(1/higgs_m_nakon_kt -> Integral());
+	higgs_m_nakon_kt -> Scale(1/higgs_m_nakon_kt -> Integral());*/
+
+	cout<<pt_lead_out<<"\t"<<pt_sec_out<<"\t"<<rap_lead_out<<"\t"<<rap_sec_out<<endl;
 }
 
 
@@ -544,7 +620,7 @@ histo_dkt_pt->GetYaxis()->SetTitleOffset(1.7);
 histo_dkt_pt->GetXaxis()->SetTitle("p_{#perp}  /  p_{#perp 0}"); 
 histo_dkt_pt->GetYaxis()->SetTitle("Relativna frekvencija");
 //histo_akt_pt->GetYaxis()->SetLabelSize(0.1);
-histo_dkt_pt->GetYaxis()->SetRangeUser(0,0.5); ////////////////
+//histo_dkt_pt->GetYaxis()->SetRangeUser(0,0.2); ////////////////
 if (gPad) gPad->SetLeftMargin(0.15);
 
 histo_dkt_pt->SetLineColor(2);
@@ -708,74 +784,82 @@ c_poz_pt_rap->Divide(2,2);
 //crtamo za leading jet pt
 c_poz_pt_rap->cd(1);
 
-histo_dkt_pt->SetTitle("1st jet pt");
-
-histo_dkt_pt->SetLineWidth(2);
+histo_kt_pt->SetTitle("1st jet pt");
+histo_kt_pt->GetYaxis()->SetRangeUser(0,100);
+histo_kt_pt->Draw("histo");
+//histo_dkt_pt->SetLineWidth(2);
 histo_dkt_pt->SetLineColor(2);
-histo_dkt_pt->Draw("histo");
+histo_dkt_pt->SetLineStyle(5);
+histo_dkt_pt->Draw("histo, same");
 
-histo_kt_pt->SetLineWidth(2);
-histo_kt_pt->SetLineColor(209);
-histo_kt_pt->SetLineStyle(9);
-histo_kt_pt->Draw("histo, same");
+//histo_kt_pt->SetLineWidth(2);
+//histo_kt_pt->SetLineColor(209);
+//histo_kt_pt->SetLineStyle(9);
 
-histo_akt_pt->SetLineWidth(2);
+
+/*histo_akt_pt->SetLineWidth(2);
 histo_akt_pt->SetLineStyle(5);
-histo_akt_pt->Draw("histo, same");
+histo_akt_pt->Draw("histo, same");*/
 
 //crtamo za second jet pt
 c_poz_pt_rap->cd(2);
 
-histo_dkt_pt1->SetTitle("2nd jet pt");
-
-histo_dkt_pt1->SetLineWidth(2);
+histo_kt_pt1->SetTitle("2nd jet pt");
+histo_kt_pt1->GetYaxis()->SetRangeUser(0,100);
+histo_kt_pt1->Draw("histo,");
+//histo_dkt_pt1->SetLineWidth(2);
 histo_dkt_pt1->SetLineColor(2);
-histo_dkt_pt1->Draw("histo");
+histo_dkt_pt1->SetLineStyle(5);
+histo_dkt_pt1->Draw("histo, same");
 
-histo_kt_pt1->SetLineWidth(2);
-histo_kt_pt1->SetLineColor(209);
-histo_kt_pt1->SetLineStyle(9);
-histo_kt_pt1->Draw("histo, same");
+//histo_kt_pt1->SetLineWidth(2);
+//histo_kt_pt1->SetLineColor(209);
+//histo_kt_pt1->SetLineStyle(9);
 
-histo_akt_pt1->SetLineWidth(2);
+
+/*histo_akt_pt1->SetLineWidth(2);
 histo_akt_pt1->SetLineStyle(5);
-histo_akt_pt1->Draw("histo, same");
+histo_akt_pt1->Draw("histo, same");*/
 
 //crtamo za leading rapiditet
 c_poz_pt_rap->cd(3);
 
-histo_dkt_rap->SetTitle("1st jet rap");
-
-histo_dkt_rap->SetLineWidth(2);
+histo_kt_rap->SetTitle("1st jet rap");
+histo_kt_rap->GetYaxis()->SetRangeUser(0,150);
+histo_kt_rap->Draw("histo");
+//histo_dkt_rap->SetLineWidth(2);
 histo_dkt_rap->SetLineColor(2);
-histo_dkt_rap->Draw("histo");
+histo_dkt_rap->SetLineStyle(5);
+histo_dkt_rap->Draw("histo, same");
 
-histo_kt_rap->SetLineWidth(2);
-histo_kt_rap->SetLineColor(209);
-histo_kt_rap->SetLineStyle(9);
-histo_kt_rap->Draw("histo, same");
+//histo_kt_rap->SetLineWidth(2);
+//histo_kt_rap->SetLineColor(209);
+//histo_kt_rap->SetLineStyle(9);
 
-histo_akt_rap->SetLineWidth(2);
+
+/*histo_akt_rap->SetLineWidth(2);
 histo_akt_rap->SetLineStyle(5);
-histo_akt_rap->Draw("histo, same");
+histo_akt_rap->Draw("histo, same");*/
 
 //crtamo za second rapiditet
 c_poz_pt_rap->cd(4);
 
-histo_dkt_rap1->SetTitle("2nd jet rap");
-
-histo_dkt_rap1->SetLineWidth(2);
+histo_kt_rap1->SetTitle("2nd jet rap");
+histo_kt_rap1->GetYaxis()->SetRangeUser(0,150);
+histo_kt_rap1->Draw("histo");
+//histo_dkt_rap1->SetLineWidth(2);
 histo_dkt_rap1->SetLineColor(2);
-histo_dkt_rap1->Draw("histo");
+histo_dkt_rap1->SetLineStyle(5);
+histo_dkt_rap1->Draw("histo, same");
 
-histo_kt_rap1->SetLineWidth(2);
-histo_kt_rap1->SetLineColor(209);
-histo_kt_rap1->SetLineStyle(9);
-histo_kt_rap1->Draw("histo, same");
+//histo_kt_rap1->SetLineWidth(2);
+//histo_kt_rap1->SetLineColor(209);
+//histo_kt_rap1->SetLineStyle(9);
 
-histo_akt_rap1->SetLineWidth(2);
+
+/*histo_akt_rap1->SetLineWidth(2);
 histo_akt_rap1->SetLineStyle(5);
-histo_akt_rap1->Draw("histo, same");
+histo_akt_rap1->Draw("histo, same");*/
 
 
 /*TLegend *pt_rap_poz = new TLegend(0.1,0.8,0.3,0.9);
@@ -790,7 +874,7 @@ pt_rap_poz->AddEntry(histo_akt_pt1,"anti_kt bbar","l");
 pt_rap_poz->Draw("same");*/
 
 
-c_poz_pt_rap->SaveAs("100_pozadina_pt_rap.png");
+c_poz_pt_rap->SaveAs("100_pozadina_pt_rap_gluoni.png");
 
 ////////// CRTAMO ZBROJ MASA JETOVA ZA POZADINU ////////////	
 
@@ -810,20 +894,152 @@ c_masa_poz->cd(1);
   higgs_m_nakon_kt->SetLineStyle(9);
   higgs_m_nakon_kt->Draw("histo, same");
 
-  higgs_m_nakon_akt->SetLineWidth(2);
+  /*higgs_m_nakon_akt->SetLineWidth(2);
   higgs_m_nakon_akt->SetLineStyle(5);
-  higgs_m_nakon_akt->Draw("histo, same");
+  higgs_m_nakon_akt->Draw("histo, same");*/
 
 TLegend *masa_poz = new TLegend(0.15,0.8,0.35,0.9);
 
 masa_poz->AddEntry(higgs_m_nakon_dkt,"dipole_kt","l");
 masa_poz->AddEntry(higgs_m_nakon_kt,"kt","l");
-masa_poz->AddEntry(higgs_m_nakon_akt,"anti_kt","l");
+//masa_poz->AddEntry(higgs_m_nakon_akt,"anti_kt","l");
 
 masa_poz->Draw("same");
 
 c_masa_poz->SaveAs("ukupna_masa_pozadina.png");
 
+
+
+}
+
+void Analyzer::ProvjeraKoda(string filename_dkt, string filename_kt)
+{
+	histo_dkt_pt = new TH1F("dipole_kt_alg_pt","",120,0,2);  //0.9 - 1.04
+   	histo_dkt_rap = new TH1F("dipole_kt_alg_rap","",120,-3,3);
+
+	histo_kt_pt = new TH1F("kt_alg_pt","",120,0,2);
+        histo_kt_rap = new TH1F("kt_alg_rap","",120,-3,3);
+
+	int br1 = 0, br2 = 0;
+
+	
+
+  ifstream myReadFile;
+  myReadFile.open(filename_dkt.c_str());
+  string line;
+
+  _skipFirstLine = true;
+
+  if (myReadFile.is_open())
+  {
+    // Read the file line by line
+    while(getline(myReadFile, line))
+    {
+        stringstream   linestream(line);
+      	
+	if (_skipFirstLine)
+        {
+          _skipFirstLine = false;
+          continue;
+        }
+
+
+        // Read output and send it to dedicated variables
+        linestream >> particle1_px_true >> particle1_py_true >> particle1_pz_true >> particle1_en_true >> 
+		      particle1_px >> particle1_py >> particle1_pz >> particle1_en;
+
+
+	b_true.SetPxPyPzE(particle1_px_true,particle1_py_true,particle1_pz_true,particle1_en_true);
+
+	b.SetPxPyPzE(particle1_px,particle1_py,particle1_pz,particle1_en);
+	
+	histo_dkt_pt->Fill(b.Pt()/b_true.Pt());
+
+	if(b.Pt()/b_true.Pt() > 2.0 || b.Pt()/b_true.Pt()<0.0)
+		br1++;
+
+	histo_dkt_rap->Fill(fabs(b.Rapidity())-fabs(b_true.Rapidity()));
+	
+	/*if((b.Pt()/b_true.Pt())>10)
+	{
+		cout<<b.Pt()/b_true.Pt()<<"\t"<<b.Pt()<<"\t"<<b_true.Pt()<<endl;
+	}*/
+   }}
+
+ myReadFile.close();
+
+
+
+  //ifstream myReadFile;
+  myReadFile.open(filename_kt.c_str());
+  //string line;
+
+  _skipFirstLine = true;
+
+  if (myReadFile.is_open())
+  {
+    // Read the file line by line
+    while(getline(myReadFile, line))
+    {
+        stringstream   linestream(line);
+      	
+	if (_skipFirstLine)
+        {
+          _skipFirstLine = false;
+          continue;
+        }
+
+
+        // Read output and send it to dedicated variables
+        linestream >> particle2_px_true >> particle2_py_true >> particle2_pz_true >> particle2_en_true >> 
+		      particle2_px >> particle2_py >> particle2_pz >> particle2_en;
+
+
+	b_true.SetPxPyPzE(particle2_px_true,particle2_py_true,particle2_pz_true,particle2_en_true);
+
+	b.SetPxPyPzE(particle2_px,particle2_py,particle2_pz,particle2_en);
+	
+	histo_kt_pt->Fill(b.Pt()/b_true.Pt());
+
+	if(b.Pt()/b_true.Pt() > 2.0 || b.Pt()/b_true.Pt()<0.0)
+		br2++;
+
+
+	histo_kt_rap->Fill(fabs(b.Rapidity())-fabs(b_true.Rapidity()));
+
+	//if((b.Pt()/b_true.Pt())>10)
+	//{
+		//cout<<b.Pt()/b_true.Pt()<<"\t"<<b.Pt()<<"\t"<<b_true.Pt()<<endl;
+	//}
+   }}
+
+ myReadFile.close();
+
+ cout<<br1<<"\t"<<br2<<endl;
+ 
+ TCanvas *c_test = new TCanvas("c_test","c_test", 1600, 800);
+ c_test->Divide(2,1);
+
+ c_test->cd(1);
+
+ histo_dkt_pt->GetXaxis()->SetTitle("pt/pt_true");
+ histo_dkt_pt->SetLineWidth(2);
+ histo_dkt_pt->SetLineColor(2);
+ histo_dkt_pt->SetLineStyle(9);
+ histo_dkt_pt->Draw();
+ histo_kt_pt->Draw("same");
+
+ c_test->cd(2);
+
+ histo_dkt_rap->GetXaxis()->SetTitle("y - y_true");
+ histo_dkt_rap->SetLineWidth(2);
+ histo_dkt_rap->SetLineColor(2);
+ histo_dkt_rap->SetLineStyle(9);
+ histo_dkt_rap->Draw();
+ histo_kt_rap->Draw("same");
+
+c_test->SaveAs("1_jet_test_01.png");
+ 
 
 
 }
